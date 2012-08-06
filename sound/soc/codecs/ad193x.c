@@ -395,6 +395,8 @@ static const struct regmap_config ad193x_spi_regmap_config = {
 
 static int __devinit ad193x_spi_probe(struct spi_device *spi)
 {
+
+	printk(KERN_DEBUG "Entering: ad193x_spi_probe"); //CS
 	struct ad193x_priv *ad193x;
 	int ret;
 
@@ -516,6 +518,7 @@ static int __init ad193x_modinit(void)
 	int ret;
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
+	printk(KERN_DEBUG "init ad193x_modinit : I2C driver..."); //CS
 	ret =  i2c_add_driver(&ad193x_i2c_driver);
 	if (ret != 0) {
 		printk(KERN_ERR "Failed to register AD193X I2C driver: %d\n",
@@ -524,6 +527,7 @@ static int __init ad193x_modinit(void)
 #endif
 
 #if defined(CONFIG_SPI_MASTER)
+	printk(KERN_DEBUG "init ad193x_modinit : SPI driver..."); //CS
 	ret = spi_register_driver(&ad193x_spi_driver);
 	if (ret != 0) {
 		printk(KERN_ERR "Failed to register AD193X SPI driver: %d\n",
