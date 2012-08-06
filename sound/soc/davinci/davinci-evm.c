@@ -29,6 +29,8 @@
 #include "davinci-i2s.h"
 #include "davinci-mcasp.h"
 
+#include "../codecs/ad193x.h"
+
 #define AUDIO_FORMAT (SND_SOC_DAIFMT_DSP_B | \
 		SND_SOC_DAIFMT_CBM_CFM | SND_SOC_DAIFMT_IB_NF)
 static int evm_hw_params(struct snd_pcm_substream *substream,
@@ -57,7 +59,8 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
 		sysclk = 24576000;
 	/* On AM335X, CODEC gets MCLK from external Xtal (12MHz). */
 	else if (machine_is_am335xevm())
-		sysclk = 12000000;
+		//sysclk = 12000000;
+		sysclk = 12288000; //CS: master clock on ad193x/ad1974 is 12.288 MHz
 
 	else
 		return -EINVAL;
@@ -241,6 +244,7 @@ static struct snd_soc_dai_link da850_evm_dai = {
 	.ops = &evm_ops,
 };
 
+/* //CS: commented this struct
 static struct snd_soc_dai_link am335x_evm_dai = {
 	.name = "TLV320AIC3X",
 	.stream_name = "AIC3X",
@@ -250,7 +254,19 @@ static struct snd_soc_dai_link am335x_evm_dai = {
 	.platform_name = "davinci-pcm-audio",
 	.init = evm_aic3x_init,
 	.ops = &evm_ops,
+};*/
+
+static struct snd_soc_dai_link am335x_evm_dai = { //CS: used this struct instead
+	.name = "ad193x",
+	.stream_name = "AD193X",
+	.cpu_dai_name = "davinci-mcasp.0", //.0 instead of .1 (beaglebone uses mcasp.0)
+	.codec_dai_name = "ad193x-hifi",
+	.codec_name = "spi1.0", //CS make it SPI rather than I2C (spi bus 1 chipselect 0)
+	.platform_name = "davinci-pcm-audio",
+	.init = evm_aic3x_init,
+	.ops = &evm_ops,
 };
+
 
 /* davinci dm6446 evm audio machine driver */
 static struct snd_soc_card dm6446_snd_soc_card_evm = {
@@ -306,6 +322,9 @@ static int __init evm_init(void)
 	int index;
 	int ret;
 
+	printk(KERN_INFO "Entered evm_init in davinci-evm.c. Checking machine..."); //CS
+
+
 	if (machine_is_davinci_evm()) {
 		evm_snd_dev_data = &dm6446_snd_soc_card_evm;
 		index = 0;
@@ -327,6 +346,7 @@ static int __init evm_init(void)
 	} else if (machine_is_am335xevm()) {
 		evm_snd_dev_data = &am335x_snd_soc_card;
 		index = 0;
+		printk(KERN_INFO "Detected machine: am335xevm"); //CS
 	} else
 		return -EINVAL;
 
