@@ -36,12 +36,13 @@
 static int evm_hw_params(struct snd_pcm_substream *substream,
 			 struct snd_pcm_hw_params *params)
 {
-	printk(KERN_DEBUG "Entering davinci-evm.c->evm_hw_params..."); //CS	
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
 	int ret = 0;
 	unsigned sysclk;
+
+	printk(KERN_DEBUG "Entering davinci-evm.c->evm_hw_params..."); //CS	
 
 	/* ASP1 on DM355 EVM is clocked by an external oscillator */
 	if (machine_is_davinci_dm355_evm() || machine_is_davinci_dm6467_evm() ||
@@ -59,12 +60,12 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
 				machine_is_davinci_da850_evm())
 		sysclk = 24576000;
 	/* On AM335X, CODEC gets MCLK from external Xtal (12MHz). */
-	else if (machine_is_am335xevm())
+	else if (machine_is_am335xevm()){
 		//sysclk = 12000000;
 		sysclk = 12288000; //CS: master clock on ad193x/ad1974 is 12.288 MHz
 		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: setting sysclk to 12.288 MHz"); //CS
 
-	else
+	}else
 		return -EINVAL;
 
 	/* set codec DAI configuration */

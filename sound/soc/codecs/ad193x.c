@@ -395,10 +395,10 @@ static const struct regmap_config ad193x_spi_regmap_config = {
 
 static int __devinit ad193x_spi_probe(struct spi_device *spi)
 {
-
-	printk(KERN_DEBUG "Entering: ad193x_spi_probe"); //CS
 	struct ad193x_priv *ad193x;
 	int ret;
+
+	printk(KERN_DEBUG "Entering: ad193x_spi_probe"); //CS
 
 	ad193x = kzalloc(sizeof(struct ad193x_priv), GFP_KERNEL);
 	if (ad193x == NULL)
@@ -412,7 +412,7 @@ static int __devinit ad193x_spi_probe(struct spi_device *spi)
 
 	spi_set_drvdata(spi, ad193x);
 
-	printk(KERN_DEBUG "ad193x.c->ad193x_spi_probe: calling snd_soc_register"); //CS
+	printk(KERN_DEBUG "ad193x.c->ad193x_spi_probe: calling snd_soc_register_codec"); //CS
 	ret = snd_soc_register_codec(&spi->dev,
 			&soc_codec_dev_ad193x, &ad193x_dai, 1);
 	if (ret < 0)

@@ -3011,10 +3011,10 @@ EXPORT_SYMBOL_GPL(snd_soc_unregister_dai);
 int snd_soc_register_dais(struct device *dev,
 		struct snd_soc_dai_driver *dai_drv, size_t count)
 {
-	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_dais...\n"); //CS
 	struct snd_soc_dai *dai;
 	int i, ret = 0;
 
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_dais...\n"); //CS
 	dev_dbg(dev, "dai register %s #%Zu\n", dev_name(dev), count);
 
 	for (i = 0; i < count; i++) {
@@ -3190,13 +3190,13 @@ int snd_soc_register_codec(struct device *dev,
 			   struct snd_soc_dai_driver *dai_drv,
 			   int num_dai)
 {
-	
-	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_codec...\n"); //CS
 
 	size_t reg_size;
 	struct snd_soc_codec *codec;
 	int ret, i;
 
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_codec...\n"); //CS
+	printk(KERN_DEBUG "...codec register %s\n", dev_name(dev)); //CS
 	dev_dbg(dev, "codec register %s\n", dev_name(dev));
 
 	codec = kzalloc(sizeof(struct snd_soc_codec), GFP_KERNEL);
@@ -3266,6 +3266,7 @@ int snd_soc_register_codec(struct device *dev,
 
 	/* register any DAIs */
 	if (num_dai) {
+		printk(KERN_DEBUG "soc-core.c->snd_soc_register_codec: calling snd_soc_register_dais");
 		ret = snd_soc_register_dais(dev, dai_drv, num_dai);
 		if (ret < 0)
 			goto fail;

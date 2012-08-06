@@ -908,14 +908,14 @@ static struct snd_soc_dai_driver davinci_mcasp_dai[] = {
 };
 
 static int davinci_mcasp_probe(struct platform_device *pdev)
-{
-	printk(KERN_DEBUG "Entering: davinci-mcasp.c->davninci_mcasp_probe..."); //CS
-	
+{	
 	struct davinci_pcm_dma_params *dma_data;
 	struct resource *mem, *ioarea, *res;
 	struct snd_platform_data *pdata;
 	struct davinci_audio_dev *dev;
 	int ret = 0;
+
+	printk(KERN_DEBUG "Entering: davinci-mcasp.c->davinci_mcasp_probe..."); //CS
 
 	dev = kzalloc(sizeof(struct davinci_audio_dev), GFP_KERNEL);
 	if (!dev)
@@ -1179,6 +1179,8 @@ static struct platform_driver davinci_mcasp_driver = {
 
 static int __init davinci_mcasp_init(void)
 {
+	printk(KERN_DEBUG "init davinci-mcasp.c"); //CS
+	printk(KERN_DEBUG "davinci-mcasp.c->init: calling platform_driver_register(&davinci_mcasp_driver"); //CS
 	return platform_driver_register(&davinci_mcasp_driver);
 }
 module_init(davinci_mcasp_init);
