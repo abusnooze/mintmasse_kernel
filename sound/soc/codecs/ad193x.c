@@ -412,6 +412,7 @@ static int __devinit ad193x_spi_probe(struct spi_device *spi)
 
 	spi_set_drvdata(spi, ad193x);
 
+	printk(KERN_DEBUG "ad193x.c->ad193x_spi_probe: calling snd_soc_register"); //CS
 	ret = snd_soc_register_codec(&spi->dev,
 			&soc_codec_dev_ad193x, &ad193x_dai, 1);
 	if (ret < 0)
@@ -424,6 +425,7 @@ err_regmap_exit:
 err_free:
 	kfree(ad193x);
 
+	printk(KERN_DEBUG "ad193x->ad193x_spi_probe: return with error"); //CS
 	return ret;
 }
 

@@ -746,6 +746,8 @@ static struct snd_soc_dai_ops null_dai_ops = {
 
 static int soc_bind_dai_link(struct snd_soc_card *card, int num)
 {
+	printk(KERN_DEBUG "Entering soc-core.c -> soc_bind_dai_link"); //CS
+
 	struct snd_soc_dai_link *dai_link = &card->dai_link[num];
 	struct snd_soc_pcm_runtime *rtd = &card->rtd[num];
 	struct snd_soc_codec *codec;
@@ -1111,6 +1113,7 @@ static int soc_post_component_init(struct snd_soc_card *card,
 
 static int soc_probe_dai_link(struct snd_soc_card *card, int num, int order)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->soc_probe_dai_link..."); //CS
 	struct snd_soc_dai_link *dai_link = &card->dai_link[num];
 	struct snd_soc_pcm_runtime *rtd = &card->rtd[num];
 	struct snd_soc_codec *codec = rtd->codec;
@@ -1542,6 +1545,7 @@ static void snd_soc_instantiate_cards(void)
 /* probes a new socdev */
 static int soc_probe(struct platform_device *pdev)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->soc_probe..."); //CS
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 	int ret = 0;
 
@@ -1554,9 +1558,11 @@ static int soc_probe(struct platform_device *pdev)
 
 	/* Bodge while we unpick instantiation */
 	card->dev = &pdev->dev;
-
+	
+	printk(KERN_DEBUG "soc-core.c->soc_probe: calling snd_soc_register_card"); //CS
 	ret = snd_soc_register_card(card);
 	if (ret != 0) {
+		printk(KERN_DEBUG "soc-core.c->soc_probe: Failed to register card"); //CS
 		dev_err(&pdev->dev, "Failed to register card\n");
 		return ret;
 	}
@@ -2936,6 +2942,8 @@ static inline char *fmt_multiple_name(struct device *dev,
 int snd_soc_register_dai(struct device *dev,
 		struct snd_soc_dai_driver *dai_drv)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_dai..."); //CS	
+	
 	struct snd_soc_dai *dai;
 
 	dev_dbg(dev, "dai register %s\n", dev_name(dev));
@@ -2961,6 +2969,7 @@ int snd_soc_register_dai(struct device *dev,
 	snd_soc_instantiate_cards();
 	mutex_unlock(&client_mutex);
 
+	printk("Registered DAI '%s'\n", dai->name); //CS
 	pr_debug("Registered DAI '%s'\n", dai->name);
 
 	return 0;
@@ -3002,6 +3011,7 @@ EXPORT_SYMBOL_GPL(snd_soc_unregister_dai);
 int snd_soc_register_dais(struct device *dev,
 		struct snd_soc_dai_driver *dai_drv, size_t count)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_dais...\n"); //CS
 	struct snd_soc_dai *dai;
 	int i, ret = 0;
 
@@ -3036,6 +3046,7 @@ int snd_soc_register_dais(struct device *dev,
 		list_add(&dai->list, &dai_list);
 		mutex_unlock(&client_mutex);
 
+		printk(KERN_DEBUG "Registered DAI '%s'\n", dai->name); //CS
 		pr_debug("Registered DAI '%s'\n", dai->name);
 	}
 
@@ -3075,6 +3086,8 @@ EXPORT_SYMBOL_GPL(snd_soc_unregister_dais);
 int snd_soc_register_platform(struct device *dev,
 		struct snd_soc_platform_driver *platform_drv)
 {
+	printk(KERN_DEBUG "Entering: soc_core.c->snd_soc_register_platform..."); //CS	
+
 	struct snd_soc_platform *platform;
 
 	dev_dbg(dev, "platform register %s\n", dev_name(dev));
@@ -3101,8 +3114,9 @@ int snd_soc_register_platform(struct device *dev,
 	snd_soc_instantiate_cards();
 	mutex_unlock(&client_mutex);
 
+	printk(KERN_DEBUG "Registered platform '%s'\n", platform->name); //CS
 	pr_debug("Registered platform '%s'\n", platform->name);
-
+	
 	return 0;
 }
 EXPORT_SYMBOL_GPL(snd_soc_register_platform);
@@ -3176,6 +3190,9 @@ int snd_soc_register_codec(struct device *dev,
 			   struct snd_soc_dai_driver *dai_drv,
 			   int num_dai)
 {
+	
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_codec...\n"); //CS
+
 	size_t reg_size;
 	struct snd_soc_codec *codec;
 	int ret, i;
@@ -3259,10 +3276,12 @@ int snd_soc_register_codec(struct device *dev,
 	snd_soc_instantiate_cards();
 	mutex_unlock(&client_mutex);
 
+	printk(KERN_DEBUG "...registered codec '%s'\n", codec->name); //CS
 	pr_debug("Registered codec '%s'\n", codec->name);
 	return 0;
 
 fail:
+	printk(KERN_DEBUG "...failed to register codec or dai!\n");
 	kfree(codec->reg_def_copy);
 	codec->reg_def_copy = NULL;
 	kfree(codec->name);

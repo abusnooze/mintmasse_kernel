@@ -36,6 +36,7 @@
 static int evm_hw_params(struct snd_pcm_substream *substream,
 			 struct snd_pcm_hw_params *params)
 {
+	printk(KERN_DEBUG "Entering davinci-evm.c->evm_hw_params..."); //CS	
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
@@ -61,6 +62,7 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
 	else if (machine_is_am335xevm())
 		//sysclk = 12000000;
 		sysclk = 12288000; //CS: master clock on ad193x/ad1974 is 12.288 MHz
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: setting sysclk to 12.288 MHz"); //CS
 
 	else
 		return -EINVAL;
@@ -261,9 +263,9 @@ static struct snd_soc_dai_link am335x_evm_dai = { //CS: used this struct instead
 	.stream_name = "AD193X",
 	.cpu_dai_name = "davinci-mcasp.0", //.0 instead of .1 (beaglebone uses mcasp.0)
 	.codec_dai_name = "ad193x-hifi",
-	.codec_name = "spi1.0", //CS make it SPI rather than I2C (spi bus 1 chipselect 0)
+	.codec_name = "spi1.0", //CS: make it SPI rather than I2C (spi bus 1 chipselect 0)
 	.platform_name = "davinci-pcm-audio",
-	.init = evm_aic3x_init,
+	//.init = evm_aic3x_init, //CS: removed this init function
 	.ops = &evm_ops,
 };
 
@@ -350,7 +352,7 @@ static int __init evm_init(void)
 	} else
 		return -EINVAL;
 
-	evm_snd_device = platform_device_alloc("soc-audio", index);
+	evm_snd_device = platform_device_alloc("soc-audio", index); //soc-audio: see soc-core.c
 	if (!evm_snd_device)
 		return -ENOMEM;
 

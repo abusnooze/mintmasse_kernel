@@ -1643,9 +1643,11 @@ static void mmc0_no_cd_init(int evm_id, int profile)
 /* setup spi0 */
 static void spi0_init(int evm_id, int profile)
 {
+	printk(KERN_DEBUG "Entering board-am335xevm.c->spi0_init..."); //CS
 	setup_pin_mux(spi0_pin_mux);
-	spi_register_board_info(bone_spi0_info,      //CS: changed to register bone_spi0_info
-			ARRAY_SIZE(bone_spi0_info));
+	printk(KERN_DEBUG "board-am335xevm.c->spi0_init: calling spi_register_board_info."); //CS
+	spi_register_board_info(bone_spi0_info,      
+			ARRAY_SIZE(bone_spi0_info)); //CS: changed to register bone_spi0_info
 	return;
 }
 

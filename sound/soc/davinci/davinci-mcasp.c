@@ -909,6 +909,8 @@ static struct snd_soc_dai_driver davinci_mcasp_dai[] = {
 
 static int davinci_mcasp_probe(struct platform_device *pdev)
 {
+	printk(KERN_DEBUG "Entering: davinci-mcasp.c->davninci_mcasp_probe..."); //CS
+	
 	struct davinci_pcm_dma_params *dma_data;
 	struct resource *mem, *ioarea, *res;
 	struct snd_platform_data *pdata;
@@ -1018,6 +1020,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 
 	dma_data->channel = res->start;
 	dev_set_drvdata(&pdev->dev, dev);
+	printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: calling snd_soc_register_dai"); //CS
 	ret = snd_soc_register_dai(&pdev->dev, &davinci_mcasp_dai[pdata->op_mode]);
 
 	if (ret != 0)

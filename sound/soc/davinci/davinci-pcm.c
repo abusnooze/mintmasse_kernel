@@ -870,6 +870,8 @@ static struct snd_soc_platform_driver davinci_soc_platform = {
 
 static int __devinit davinci_soc_platform_probe(struct platform_device *pdev)
 {
+	printk(KERN_DEBUG "Entering: davinci-pcm.c->davinci_soc_platform_probe..."); //CS
+	printk(KERN_DEBUG "avinci-pcm.c->davinci_soc_platform_probe: calling snd_soc_register_platform"); //CS
 	return snd_soc_register_platform(&pdev->dev, &davinci_soc_platform);
 }
 
