@@ -1160,13 +1160,14 @@ static struct spi_board_info am335x_spi1_slave_info[] = {
 
 static struct spi_board_info bone_spi0_info[] = { //CS: added this struct
 	{
-		.modalias = "spidev",
-		.max_speed_hz = 48000000, //48 Mbps
+		.modalias = "ad193x",
+		.max_speed_hz = 3125000, //not sure about this value (48000000 used by communist-code)
 		.bus_num = 1,
 		.chip_select = 0,
-		.mode = SPI_MODE_1,
+		.mode = SPI_MODE_3,
 	},
 };
+
 
 static struct gpmc_timings am335x_nand_timings = {
 	.sync_clk = 0,
