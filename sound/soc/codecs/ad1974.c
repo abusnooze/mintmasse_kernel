@@ -323,7 +323,7 @@ static struct snd_soc_dai_ops ad193x_dai_ops = {
 
 /* codec DAI instance */
 static struct snd_soc_dai_driver ad193x_dai = {
-	.name = "ad193x-hifi",
+	.name = "ad1974-hifi", //CS
 	.playback = {
 		.stream_name = "Playback",
 		.channels_min = 2,
@@ -438,7 +438,7 @@ static int __devexit ad193x_spi_remove(struct spi_device *spi)
 
 static struct spi_driver ad193x_spi_driver = {
 	.driver = {
-		.name	= "ad193x",
+		.name	= "ad1974", //CS
 		.owner	= THIS_MODULE,
 	},
 	.probe		= ad193x_spi_probe,
@@ -446,89 +446,18 @@ static struct spi_driver ad193x_spi_driver = {
 };
 #endif
 
-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
 
-static const struct regmap_config ad193x_i2c_regmap_config = {
-	.val_bits = 8,
-	.reg_bits = 8,
-};
-
-static const struct i2c_device_id ad193x_id[] = {
-	{ "ad1936", 0 },
-	{ "ad1937", 0 },
-	{ }
-};
-MODULE_DEVICE_TABLE(i2c, ad193x_id);
-
-static int __devinit ad193x_i2c_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
-{
-	struct ad193x_priv *ad193x;
-	int ret;
-
-	ad193x = kzalloc(sizeof(struct ad193x_priv), GFP_KERNEL);
-	if (ad193x == NULL)
-		return -ENOMEM;
-
-	ad193x->regmap = regmap_init_i2c(client, &ad193x_i2c_regmap_config);
-	if (IS_ERR(ad193x->regmap)) {
-		ret = PTR_ERR(ad193x->regmap);
-		goto err_free;
-	}
-
-	i2c_set_clientdata(client, ad193x);
-
-	ret =  snd_soc_register_codec(&client->dev,
-			&soc_codec_dev_ad193x, &ad193x_dai, 1);
-	if (ret < 0)
-		goto err_regmap_exit;
-
-	return 0;
-
-err_regmap_exit:
-	regmap_exit(ad193x->regmap);
-err_free:
-	kfree(ad193x);
-	return ret;
-}
-
-static int __devexit ad193x_i2c_remove(struct i2c_client *client)
-{
-	struct ad193x_priv *ad193x = i2c_get_clientdata(client);
-
-	snd_soc_unregister_codec(&client->dev);
-	regmap_exit(ad193x->regmap);
-	kfree(ad193x);
-	return 0;
-}
-
-static struct i2c_driver ad193x_i2c_driver = {
-	.driver = {
-		.name = "ad193x",
-	},
-	.probe    = ad193x_i2c_probe,
-	.remove   = __devexit_p(ad193x_i2c_remove),
-	.id_table = ad193x_id,
-};
-#endif
 
 static int __init ad193x_modinit(void)
 {
 	int ret;
 
-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-	ret =  i2c_add_driver(&ad193x_i2c_driver);
-	if (ret != 0) {
-		printk(KERN_ERR "Failed to register AD193X I2C driver: %d\n",
-				ret);
-	}
-#endif
 
 #if defined(CONFIG_SPI_MASTER)
 	ret = spi_register_driver(&ad193x_spi_driver);
 	if (ret != 0) {
-		printk(KERN_ERR "Failed to register AD193X SPI driver: %d\n",
-				ret);
+		printk(KERN_ERR "Failed to register AD1974 SPI driver: %d\n",
+				ret); //CS
 	}
 #endif
 	return ret;
@@ -541,9 +470,6 @@ static void __exit ad193x_modexit(void)
 	spi_unregister_driver(&ad193x_spi_driver);
 #endif
 
-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-	i2c_del_driver(&ad193x_i2c_driver);
-#endif
 }
 module_exit(ad193x_modexit);
 
