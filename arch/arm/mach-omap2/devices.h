@@ -16,7 +16,8 @@ struct isp_platform_data;
 
 int omap3_init_camera(struct isp_platform_data *pdata);
 
-int __init am335x_register_mcasp(struct snd_platform_data *pdata, int ctrl_nr);
+int __init am335x_register_mcasp(struct snd_platform_data *pdata, int ctrl_nr); //CS: should I comment this out?
+void __init am335x_register_mcasp0(struct snd_platform_data *pdata); //CS added
 extern int __init am33xx_register_tsc(struct tsc_data *pdata);
 extern int __init am33xx_register_ecap(int id,
 		struct pwmss_platform_data *pdata);

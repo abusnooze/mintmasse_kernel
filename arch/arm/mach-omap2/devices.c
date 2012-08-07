@@ -226,7 +226,57 @@ int __init am335x_register_mcasp(struct snd_platform_data *pdata, int ctrl_nr)
 }
 #endif
 
-#if (defined(CONFIG_SND_AM33XX_SOC) || (defined(CONFIG_SND_AM33XX_SOC_MODULE)))
+//CS: added struct according to JJH
+//JJH
+static struct resource am335x_mcasp0_resource[] = {
+	{
+		.name = "mcasp0",
+		.start = AM33XX_ASP0_BASE,
+		.end = AM33XX_ASP0_BASE + (SZ_1K * 12) - 1,
+		.flags = IORESOURCE_MEM,
+	},
+	/* TX event */
+	{
+		.start = AM33XX_DMA_MCASP0_X,
+		.end = AM33XX_DMA_MCASP0_X,
+		.flags = IORESOURCE_DMA,
+	},
+	/* RX event */
+	{
+		.start = AM33XX_DMA_MCASP0_R,
+		.end = AM33XX_DMA_MCASP0_R,
+		.flags = IORESOURCE_DMA,
+	},
+	/* McASP0 Data */
+	{
+		.start  = 0x46400000 ,
+		.end    = 0x46400000 + SZ_4M - 1,
+		.flags  = IORESOURCE_MEM,
+	},
+};
+
+//CS: added struct according to JJH
+//JJH
+static struct platform_device am335x_mcasp0_device = {
+	.name = "davinci-mcasp",
+	.id = 0,
+	.num_resources = ARRAY_SIZE(am335x_mcasp0_resource),
+	.resource = am335x_mcasp0_resource,
+};
+
+//CS: added struct according to JJH
+//JJH
+void __init am335x_register_mcasp0(struct snd_platform_data *pdata)
+{
+	pr_info("%s: Entry\n", __FUNCTION__);
+
+	am335x_mcasp0_device.dev.platform_data = pdata;
+	platform_device_register(&am335x_mcasp0_device);
+}
+
+//CS: according to JJH
+//JJH #if (defined(CONFIG_SND_AM33XX_SOC) || (defined(CONFIG_SND_AM33XX_SOC_MODULE)))
+//JJH Turn on PCM Audio
 struct platform_device am33xx_pcm_device = {
 	.name		= "davinci-pcm-audio",
 	.id		= -1,
@@ -237,7 +287,9 @@ static void am33xx_init_pcm(void)
 	platform_device_register(&am33xx_pcm_device);
 }
 
-#else
+//CS: according to JJH
+//JJH #else
+#if 0 //JJH
 static inline void am33xx_init_pcm(void) {}
 #endif
 
@@ -1178,7 +1230,7 @@ static int __init omap2_init_devices(void)
 	omap_init_aes();
 	omap_init_vout();
 	am33xx_register_edma();
-	am33xx_init_pcm();
+	am33xx_init_pcm();  //CS: called here but commented out later according to JJH (!?)
 #if defined (CONFIG_SOC_OMAPAM33XX)
 	am335x_register_pruss_uio(&am335x_pruss_uio_pdata);
 	if (omap3_has_sgx())

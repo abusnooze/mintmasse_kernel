@@ -180,15 +180,39 @@ static struct tsc_data am335x_touchscreen_data  = {
 	.x_plate_resistance = 200,
 };
 
-static u8 am335x_iis_serializer_direction1[] = {
+//CS: added
+static u8 am335x_iis_serializer_direction0[] = { //direction 0 or 1 (what's the difference?)
 	INACTIVE_MODE,	INACTIVE_MODE,	TX_MODE,	RX_MODE,
 	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,
 	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,
 	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,
 };
 
+//CS: added
+static struct snd_platform_data am335x_evm_snd_data0 = {
+	.tx_dma_offset	= 0x46000000,	/*JJH McASP0 */
+	.rx_dma_offset	= 0x46000000,
+	.op_mode	= DAVINCI_MCASP_IIS_MODE,
+	.num_serializer	= ARRAY_SIZE(am335x_iis_serializer_direction0),
+	.tdm_slots	= 2,
+	.serial_dir	= am335x_iis_serializer_direction0,
+	.asp_chan_q	= EVENTQ_2,
+	.version	= MCASP_VERSION_3,
+	.txnumevt	= 1,
+	.rxnumevt	= 1,
+};
+
+/* //CS: commented out
+static u8 am335x_iis_serializer_direction1[] = {
+	INACTIVE_MODE,	INACTIVE_MODE,	TX_MODE,	RX_MODE,
+	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,
+	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,
+	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,	INACTIVE_MODE,
+};
+*/
+/* //CS: commented out
 static struct snd_platform_data am335x_evm_snd_data1 = {
-	.tx_dma_offset	= 0x46400000,	/* McASP1 */
+	.tx_dma_offset	= 0x46400000,	// McASP1
 	.rx_dma_offset	= 0x46400000,
 	.op_mode	= DAVINCI_MCASP_IIS_MODE,
 	.num_serializer	= ARRAY_SIZE(am335x_iis_serializer_direction1),
@@ -199,6 +223,7 @@ static struct snd_platform_data am335x_evm_snd_data1 = {
 	.txnumevt	= 1,
 	.rxnumevt	= 1,
 };
+*/
 
 static struct omap2_hsmmc_info am335x_mmc[] __initdata = {
 	{
@@ -585,6 +610,15 @@ static struct pinmux_config mcasp1_pin_mux[] = {
 	{NULL, 0},
 };
 
+//CS: added from: 
+//CS: https://groups.google.com/forum/#!msg/beagleboard/9MewKu48jJM/mS6h5vldlj8J
+static struct pinmux_config mcasp0_pin_mux[] = {
+         {"lcd_data8.mcasp0_aclkx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN},
+         {"lcd_data9.mcasp0_fsx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN},
+         {"lcd_data12.mcasp0_axr2", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN},
+         {"lcd_data13.mcasp0_axr3", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN},
+         {NULL, 0},
+}; 
 
 /* Module pin mux for mmc0 */
 static struct pinmux_config mmc0_pin_mux[] = {
@@ -1458,6 +1492,7 @@ static void i2c2_init(int evm_id, int profile)
 	return;
 }
 
+#if 0 //CS: commented out
 /* Setup McASP 1 */
 static void mcasp1_init(int evm_id, int profile)
 {
@@ -1466,6 +1501,24 @@ static void mcasp1_init(int evm_id, int profile)
 	am335x_register_mcasp(&am335x_evm_snd_data1, 1);
 	return;
 }
+#endif
+
+//CS: inseterted this instead
+/* Setup McASP 0 */
+static void mcasp0_init(int evm_id, int profile)
+{
+	pr_info("%s: Entry\n", __FUNCTION__);
+	printk(KERN_DEBUG "abu: Entering board-am335xevm.c->mcasp0_init\n");
+	/* Configure McASP */
+	//JJH done now in driver
+	//JJH	setup_pin_mux(mcasp0_pin_mux);
+	//JJH See devices.c/.h for function...
+	setup_pin_mux(mcasp0_pin_mux); //CS: try doing it here rather than in driver as suggested by JJH
+	am335x_register_mcasp0(&am335x_evm_snd_data0); //CS: note that _mcasp0 rather that mcasp(..., 0)
+                                                       //CS: maybe am335x_register_mcasp(...,0) would be cleaner
+	return;
+}
+
 
 static void mmc1_init(int evm_id, int profile)
 {
@@ -1759,7 +1812,7 @@ static struct evm_dev_cfg gen_purp_evm_dev_cfg[] = {
 	{evm_nand_init, DEV_ON_DGHTR_BRD,
 		(PROFILE_ALL & ~PROFILE_2 & ~PROFILE_3)},
 	{i2c1_init,     DEV_ON_DGHTR_BRD, (PROFILE_ALL & ~PROFILE_2)},
-	{mcasp1_init,	DEV_ON_DGHTR_BRD, (PROFILE_0 | PROFILE_3 | PROFILE_7)},
+	//{mcasp1_init,	DEV_ON_DGHTR_BRD, (PROFILE_0 | PROFILE_3 | PROFILE_7)}, //CS
 	{mmc1_init,	DEV_ON_DGHTR_BRD, PROFILE_2},
 	{mmc2_wl12xx_init,	DEV_ON_BASEBOARD, (PROFILE_0 | PROFILE_3 |
 								PROFILE_5)},
@@ -1802,7 +1855,7 @@ static struct evm_dev_cfg ip_phn_evm_dev_cfg[] = {
 	{usb1_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
 	{evm_nand_init, DEV_ON_DGHTR_BRD, PROFILE_NONE},
 	{i2c1_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
-	{mcasp1_init,	DEV_ON_DGHTR_BRD, PROFILE_NONE},
+	//{mcasp1_init,	DEV_ON_DGHTR_BRD, PROFILE_NONE}, //CS
 	{mmc0_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
 	{NULL, 0, 0},
 };
@@ -1826,6 +1879,7 @@ static struct evm_dev_cfg beaglebone_dev_cfg[] = {
 	{mmc0_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
 	{i2c2_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
 	{spi0_init, 	DEV_ON_BASEBOARD, PROFILE_NONE}, //CS: added line
+	{mcasp0_init,	DEV_ON_BASEBOARD, PROFILE_NONE}, //CS: added line (JJH calls it in am335x_evm_init) 
 	{NULL, 0, 0},
 };
 

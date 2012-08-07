@@ -3327,6 +3327,10 @@ EXPORT_SYMBOL_GPL(snd_soc_unregister_codec);
 
 static int __init snd_soc_init(void)
 {
+	int ret = 0; //JJH //CS
+	pr_info("%s: Entry\n", __FUNCTION__); //JJH //CS
+	printk(KERN_DEBUG "abu: Entering soc-core.c->snd_soc_init..."); //CS
+	
 #ifdef CONFIG_DEBUG_FS
 	snd_soc_debugfs_root = debugfs_create_dir("asoc", NULL);
 	if (IS_ERR(snd_soc_debugfs_root) || !snd_soc_debugfs_root) {
@@ -3347,8 +3351,9 @@ static int __init snd_soc_init(void)
 				 &platform_list_fops))
 		pr_warn("ASoC: Failed to create platform list debugfs file\n");
 #endif
-
-	snd_soc_util_init();
+	pr_info("%s: ->snd_soc_util_init()\n", __FUNCTION__); //JJH //CS
+	ret = snd_soc_util_init();
+	pr_info("%s: <-snd_soc_util_init(): ret: %d\n", __FUNCTION__,ret); //JJH //CS
 
 	return platform_driver_register(&soc_driver);
 }
