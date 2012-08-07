@@ -916,6 +916,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	printk(KERN_DEBUG "Entering: davinci-mcasp.c->davinci_mcasp_probe..."); //CS
+	pr_info("%s: Entry: plat dev: 0x%08X\n", __FUNCTION__, (u32) pdev ); //JJH CS
 
 	dev = kzalloc(sizeof(struct davinci_audio_dev), GFP_KERNEL);
 	if (!dev)
@@ -952,6 +953,15 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 		goto err_release_clk;
 	}
 
+	pr_info("%s: dev: 0x%08X, ioa: 0x%08X, pdata: 0x%08X, base: 0x%08X\n", 
+		__FUNCTION__, (u32) dev, (u32) ioarea ,
+		(u32) pdata , (u32) dev->base ); //JJH //CS
+
+	// Set the pin mux values for the McASP
+	//pr_info("%s: ->beaglebone_mcasp_gpio_assign()\n", __FUNCTION__); //JJH
+	//beaglebone_mcasp_gpio_assign(pdev); should I do this?? //CS
+	//pr_info("%s: <-beaglebone_mcasp_gpio_assign()\n", __FUNCTION__); //JJH
+
 	dev->op_mode = pdata->op_mode;
 	dev->tdm_slots = pdata->tdm_slots;
 	dev->num_serializer = pdata->num_serializer;
@@ -983,13 +993,14 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 		dma_data->dma_addr = (dma_addr_t) (pdata->tx_dma_offset +
 							mem->start);
 
-	if (dev->version == MCASP_VERSION_3)
+	if (dev->version == MCASP_VERSION_3) { //CS: JJH always calls platform_get_resource(pdev, IORESOURCE_DMA, 0) (!?)
 		printk(KERN_DEBUG "abu: mcasp_probe, MCASP_VERSION_3 -> call platform_get_resource_byname [tx branch]"); //CS
 		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
-	else
+	} else {
 		/* first TX, then RX */
 		printk(KERN_DEBUG "abu: mcasp_probe, not MCASP_VERSION_3 -> call platform_get_resource [0 branch]"); //CS
 		res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
+	}
 
 	if (!res) {
 		dev_err(&pdev->dev, "no DMA resource\n");
@@ -1010,12 +1021,13 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 		dma_data->dma_addr = (dma_addr_t)(pdata->rx_dma_offset +
 							mem->start);
 
-	if (dev->version == MCASP_VERSION_3)
+	if (dev->version == MCASP_VERSION_3) {
 		printk(KERN_DEBUG "abu: mcasp_probe, MCASP_VERSION_3 -> call platform_get_resource_byname [rx branch]"); //CS
 		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
-	else
+	} else {
 		printk(KERN_DEBUG "abu: mcasp_probe, not MCASP_VERSION_3 -> call platform_get_resource [1 branch]"); //CS
 		res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
+	}
 
 	if (!res) {
 		dev_err(&pdev->dev, "no DMA resource\n");
@@ -1026,11 +1038,19 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 
 	dma_data->channel = res->start;
 	dev_set_drvdata(&pdev->dev, dev);
+	pr_info("%s: TX & RX DMA init completed...\n", __FUNCTION__); //JJH //CS
 	printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: calling snd_soc_register_dai"); //CS
 	ret = snd_soc_register_dai(&pdev->dev, &davinci_mcasp_dai[pdata->op_mode]);
 
-	if (ret != 0)
+	if (ret != 0) {
+		dev_err(&pdev->dev, "%s: snd_soc_register_dai() failed: ret: %d\n",
+			__FUNCTION__ , ret);
 		goto err_iounmap;
+	}
+
+	printk("%s: Exit: plat dev: 0x%08X: ret: 0\n",
+	      __FUNCTION__, (u32) pdev); //JJH //CS
+	
 	return 0;
 
 err_iounmap:
