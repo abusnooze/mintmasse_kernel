@@ -984,9 +984,11 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 							mem->start);
 
 	if (dev->version == MCASP_VERSION_3)
+		printk(KERN_DEBUG "abu: mcasp_probe, MCASP_VERSION_3 -> call platform_get_resource_byname [tx branch]"); //CS
 		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
 	else
 		/* first TX, then RX */
+		printk(KERN_DEBUG "abu: mcasp_probe, not MCASP_VERSION_3 -> call platform_get_resource [0 branch]"); //CS
 		res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
 
 	if (!res) {
@@ -994,6 +996,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 		ret = -ENODEV;
 		goto err_iounmap;
 	}
+	printk(KERN_DEBUG "abu: mcasp_probe, McASP tx/0 branch: got DMA resource"); //CS
 
 	dma_data->channel = res->start;
 
@@ -1008,8 +1011,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 							mem->start);
 
 	if (dev->version == MCASP_VERSION_3)
+		printk(KERN_DEBUG "abu: mcasp_probe, MCASP_VERSION_3 -> call platform_get_resource_byname [rx branch]"); //CS
 		res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
 	else
+		printk(KERN_DEBUG "abu: mcasp_probe, not MCASP_VERSION_3 -> call platform_get_resource [1 branch]"); //CS
 		res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
 
 	if (!res) {
@@ -1017,6 +1022,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 		ret = -ENODEV;
 		goto err_iounmap;
 	}
+	printk(KERN_DEBUG "abu: mcasp_probe, McASP rx/1 branch: got DMA resource"); //CS
 
 	dma_data->channel = res->start;
 	dev_set_drvdata(&pdev->dev, dev);

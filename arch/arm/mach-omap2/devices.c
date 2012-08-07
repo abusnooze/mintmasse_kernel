@@ -268,10 +268,16 @@ static struct platform_device am335x_mcasp0_device = {
 //JJH
 void __init am335x_register_mcasp0(struct snd_platform_data *pdata)
 {
-	pr_info("%s: Entry\n", __FUNCTION__);
+	int ret=0; //CS	
+	pr_info("abu: devices.c->%s: Entry\n", __FUNCTION__); //CS
+	//printk(KERN_DEBUG "abu: Entered devices.c->am335x_register_mcasp0...");	 //CS
 
 	am335x_mcasp0_device.dev.platform_data = pdata;
-	platform_device_register(&am335x_mcasp0_device);
+
+	printk(KERN_DEBUG "abu: devices.c->am335x_register_mcasp0: calling platform_device_register(&am335x_mcasp0_device)\n");	//CS
+
+	ret = platform_device_register(&am335x_mcasp0_device);
+	pr_info("%s: <-platform_device_register(&am335x_mcasp0_device): ret: %d\n", __FUNCTION__,ret); //CS
 }
 
 //CS: according to JJH
@@ -284,7 +290,11 @@ struct platform_device am33xx_pcm_device = {
 
 static void am33xx_init_pcm(void)
 {
-	platform_device_register(&am33xx_pcm_device);
+	int ret=0; //CS
+	printk(KERN_DEBUG "abu: Entered devices.c->am335x_init_pcm..");
+	printk(KERN_DEBUG "abu: devices.c->am33xx_init_pcm: calling platform_device_register(&am33xx_pcm_device)\n");	
+	ret = platform_device_register(&am33xx_pcm_device);
+	pr_info("%s: <-platform_device_register(&am33xx_pcm_device): ret: %d\n", __FUNCTION__,ret); //CS
 }
 
 //CS: according to JJH
