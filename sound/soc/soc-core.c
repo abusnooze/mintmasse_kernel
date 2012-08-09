@@ -948,6 +948,8 @@ static int soc_probe_codec(struct snd_soc_card *card,
 	int ret = 0;
 	const struct snd_soc_codec_driver *driver = codec->driver;
 
+	printk(KERN_DEBUG "Entering: soc-core.c->soc_probe_codec. Waiting for success..."); //CS
+
 	codec->card = card;
 	codec->dapm.card = card;
 	soc_set_name_prefix(card, codec);
@@ -984,6 +986,8 @@ static int soc_probe_codec(struct snd_soc_card *card,
 	codec->probed = 1;
 	list_add(&codec->card_list, &card->codec_dev_list);
 	list_add(&codec->dapm.list, &card->dapm_list);
+
+	printk(KERN_DEBUG "soc-core.c->soc_probe_codec: ...success!"); //CS
 
 	return 0;
 
@@ -1545,17 +1549,21 @@ static void snd_soc_instantiate_cards(void)
 /* probes a new socdev */
 static int soc_probe(struct platform_device *pdev)
 {
-	printk(KERN_DEBUG "Entering soc-core.c->soc_probe..."); //CS
+	
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 	int ret = 0;
+
+	printk(KERN_DEBUG "Entering soc-core.c->soc_probe..."); //CS
 
 	/*
 	 * no card, so machine driver should be registering card
 	 * we should not be here in that case so ret error
 	 */
-	if (!card)
+	if (!card){
+		printk(KERN_DEBUG "Error: card == NULL!\n"); //CS
+		printk(KERN_DEBUG "Exit soc-core.c->soc_probe with ERROR!!\n"); //CS
 		return -EINVAL;
-
+	}
 	/* Bodge while we unpick instantiation */
 	card->dev = &pdev->dev;
 	
@@ -1563,10 +1571,12 @@ static int soc_probe(struct platform_device *pdev)
 	ret = snd_soc_register_card(card);
 	if (ret != 0) {
 		printk(KERN_DEBUG "soc-core.c->soc_probe: Failed to register card"); //CS
+		printk(KERN_DEBUG "Exit soc-core.c->soc_probe"); //CS
 		dev_err(&pdev->dev, "Failed to register card\n");
 		return ret;
 	}
-
+	printk(KERN_DEBUG "soc-core.c->soc_probe: register card: successful!"); //CS
+	printk(KERN_DEBUG "Exit soc-core.c->soc_probe"); //CS
 	return 0;
 }
 
@@ -2821,6 +2831,9 @@ int snd_soc_register_card(struct snd_soc_card *card)
 {
 	int i;
 
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_card..."); //CS
+	printk(KERN_DEBUG "Registering card..."); //CS
+
 	if (!card->name || !card->dev)
 		return -EINVAL;
 
@@ -2850,8 +2863,10 @@ int snd_soc_register_card(struct snd_soc_card *card)
 	snd_soc_instantiate_cards();
 	mutex_unlock(&client_mutex);
 
+	printk(KERN_DEBUG "Registered card '%s'\n", card->name); //CS
 	dev_dbg(card->dev, "Registered card '%s'\n", card->name);
 
+	printk(KERN_DEBUG "Exit soc-core.c->snd_soc_register_card"); //CS
 	return 0;
 }
 EXPORT_SYMBOL_GPL(snd_soc_register_card);
@@ -3015,6 +3030,7 @@ int snd_soc_register_dais(struct device *dev,
 	int i, ret = 0;
 
 	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_dais...\n"); //CS
+	printk(KERN_DEBUG "dai to register %s #%Zu\n", dev_name(dev), count); //CS
 	dev_dbg(dev, "dai register %s #%Zu\n", dev_name(dev), count);
 
 	for (i = 0; i < count; i++) {
@@ -3053,12 +3069,15 @@ int snd_soc_register_dais(struct device *dev,
 	mutex_lock(&client_mutex);
 	snd_soc_instantiate_cards();
 	mutex_unlock(&client_mutex);
+
+	printk(KERN_DEBUG "Exit: soc-core.c->snd_soc_register_dais\n"); //CS
 	return 0;
 
 err:
 	for (i--; i >= 0; i--)
 		snd_soc_unregister_dai(dev);
 
+	printk(KERN_DEBUG "Exit: soc-core.c->snd_soc_register_dais with ERROR!!\n"); //CS
 	return ret;
 }
 EXPORT_SYMBOL_GPL(snd_soc_register_dais);
@@ -3086,7 +3105,8 @@ EXPORT_SYMBOL_GPL(snd_soc_unregister_dais);
 int snd_soc_register_platform(struct device *dev,
 		struct snd_soc_platform_driver *platform_drv)
 {
-	printk(KERN_DEBUG "Entering: soc_core.c->snd_soc_register_platform..."); //CS	
+	printk(KERN_DEBUG "Entering: soc_core.c->snd_soc_register_platform..."); //CS
+	printk(KERN_DEBUG "platform to register: %s\n", dev_name(dev)); //CS	
 
 	struct snd_soc_platform *platform;
 
@@ -3117,6 +3137,8 @@ int snd_soc_register_platform(struct device *dev,
 	printk(KERN_DEBUG "Registered platform '%s'\n", platform->name); //CS
 	pr_debug("Registered platform '%s'\n", platform->name);
 	
+	printk(KERN_DEBUG "Exit: soc_core.c->snd_soc_register_platform"); //CS
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(snd_soc_register_platform);
@@ -3196,7 +3218,7 @@ int snd_soc_register_codec(struct device *dev,
 	int ret, i;
 
 	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_register_codec...\n"); //CS
-	printk(KERN_DEBUG "...codec register %s\n", dev_name(dev)); //CS
+	printk(KERN_DEBUG "...codec to register: %s\n", dev_name(dev)); //CS
 	dev_dbg(dev, "codec register %s\n", dev_name(dev));
 
 	codec = kzalloc(sizeof(struct snd_soc_codec), GFP_KERNEL);
@@ -3277,12 +3299,13 @@ int snd_soc_register_codec(struct device *dev,
 	snd_soc_instantiate_cards();
 	mutex_unlock(&client_mutex);
 
-	printk(KERN_DEBUG "...registered codec '%s'\n", codec->name); //CS
+	printk(KERN_DEBUG "registered codec: '%s'\n", codec->name); //CS
 	pr_debug("Registered codec '%s'\n", codec->name);
+	printk(KERN_DEBUG "Exit: soc-core.c->snd_soc_register_codec...\n"); //CS
 	return 0;
 
 fail:
-	printk(KERN_DEBUG "...failed to register codec or dai!\n");
+	printk(KERN_DEBUG "...failed to register codec or dai!\n"); //CS
 	kfree(codec->reg_def_copy);
 	codec->reg_def_copy = NULL;
 	kfree(codec->name);
@@ -3332,6 +3355,7 @@ static int __init snd_soc_init(void)
 	printk(KERN_DEBUG "abu: Entering soc-core.c->snd_soc_init..."); //CS
 	
 #ifdef CONFIG_DEBUG_FS
+	printk(KERN_DEBUG "abu: debugfs_create_dir(asoc, NULL)"); //CS
 	snd_soc_debugfs_root = debugfs_create_dir("asoc", NULL);
 	if (IS_ERR(snd_soc_debugfs_root) || !snd_soc_debugfs_root) {
 		printk(KERN_WARNING

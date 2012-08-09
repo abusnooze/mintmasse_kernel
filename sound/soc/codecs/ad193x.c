@@ -534,7 +534,10 @@ static int __init ad193x_modinit(void)
 	if (ret != 0) {
 		printk(KERN_ERR "Failed to register AD193X SPI driver: %d\n",
 				ret);
+	} else {
+		printk(KERN_DEBUG "AD193X SPI driver registered!");
 	}
+		
 #endif
 	return ret;
 }

@@ -1192,11 +1192,11 @@ static struct spi_board_info am335x_spi1_slave_info[] = {
 };
 
 
-static struct spi_board_info bone_spi0_info[] = { //CS: added this struct
+static struct spi_board_info bone_spi1_info[] = { //CS: added this struct
 	{
 		.modalias = "ad193x",
 		.max_speed_hz = 3125000, //not sure about this value (48000000 used by communist-code)
-		.bus_num = 1,
+		.bus_num = 2,
 		.chip_select = 0,
 		.mode = SPI_MODE_3,
 	},
@@ -1694,22 +1694,24 @@ static void mmc0_no_cd_init(int evm_id, int profile)
 
 
 /* setup spi0 */
-static void spi0_init(int evm_id, int profile)
-{
-	printk(KERN_DEBUG "Entering board-am335xevm.c->spi0_init..."); //CS
-	setup_pin_mux(spi0_pin_mux);
-	printk(KERN_DEBUG "board-am335xevm.c->spi0_init: calling spi_register_board_info."); //CS
-	spi_register_board_info(bone_spi0_info,      
-			ARRAY_SIZE(bone_spi0_info)); //CS: changed to register bone_spi0_info
-	return;
-}
+//static void spi0_init(int evm_id, int profile)
+//{
+//	printk(KERN_DEBUG "Entering board-am335xevm.c->spi0_init..."); //CS
+//	setup_pin_mux(spi0_pin_mux);
+//	printk(KERN_DEBUG "board-am335xevm.c->spi0_init: calling spi_register_board_info."); //CS
+//	spi_register_board_info(bone_spi0_info,      
+//			ARRAY_SIZE(bone_spi0_info)); //CS: changed to register bone_spi0_info
+//	return;
+//}
 
 /* setup spi1 */
 static void spi1_init(int evm_id, int profile)
 {
+	printk(KERN_DEBUG "Entering board-am335xevm.c->spi1_init..."); //CS
 	setup_pin_mux(spi1_pin_mux);
-	spi_register_board_info(am335x_spi1_slave_info,
-			ARRAY_SIZE(am335x_spi1_slave_info));
+	printk(KERN_DEBUG "board-am335xevm.c->spi1_init: calling spi_register_board_info."); //CS
+	spi_register_board_info(bone_spi1_info,
+			ARRAY_SIZE(bone_spi1_info));
 	return;
 }
 
@@ -1818,7 +1820,7 @@ static struct evm_dev_cfg gen_purp_evm_dev_cfg[] = {
 								PROFILE_5)},
 	{mmc0_init,	DEV_ON_BASEBOARD, (PROFILE_ALL & ~PROFILE_5)},
 	{mmc0_no_cd_init,	DEV_ON_BASEBOARD, PROFILE_5},
-	{spi0_init,	DEV_ON_DGHTR_BRD, PROFILE_2},
+	//{spi0_init,	DEV_ON_DGHTR_BRD, PROFILE_2},  //CS: comment out, otherwise error if spi0_init is not defined
 	{uart1_wl12xx_init,	DEV_ON_BASEBOARD, (PROFILE_0 | PROFILE_3 |
 								PROFILE_5)},
 	{wl12xx_init,	DEV_ON_BASEBOARD, (PROFILE_0 | PROFILE_3 | PROFILE_5)},
@@ -1878,7 +1880,8 @@ static struct evm_dev_cfg beaglebone_dev_cfg[] = {
 	{usb1_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
 	{mmc0_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
 	{i2c2_init,	DEV_ON_BASEBOARD, PROFILE_NONE},
-	{spi0_init, 	DEV_ON_BASEBOARD, PROFILE_NONE}, //CS: added line
+	//{spi0_init, 	DEV_ON_BASEBOARD, PROFILE_NONE}, //CS: added line //deleted again
+	{spi1_init, 	DEV_ON_BASEBOARD, PROFILE_NONE}, //CS: added line
 	{mcasp0_init,	DEV_ON_BASEBOARD, PROFILE_NONE}, //CS: added line (JJH calls it in am335x_evm_init) 
 	{NULL, 0, 0},
 };
