@@ -63,26 +63,30 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
 	else if (machine_is_am335xevm()){
 		//sysclk = 12000000;
 		sysclk = 12288000; //CS: master clock on ad193x/ad1974 is 12.288 MHz
-		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: setting sysclk to 12.288 MHz"); //CS
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: machine is am335xevm -> sysclk=12.288 MHz"); //CS
 
 	}else
 		return -EINVAL;
 
 	/* set codec DAI configuration */
 	ret = snd_soc_dai_set_fmt(codec_dai, AUDIO_FORMAT);
-	if (ret < 0)
+	if (ret < 0) {
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(...) returned with error: "); //CS
 		return ret;
-
+	}
 	/* set cpu DAI configuration */
 	ret = snd_soc_dai_set_fmt(cpu_dai, AUDIO_FORMAT);
-	if (ret < 0)
+	if (ret < 0) {
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(...) returned with error"); //CS
 		return ret;
+	}
 
 	/* set the codec system clock */
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, sysclk, SND_SOC_CLOCK_OUT);
-	if (ret < 0)
+	if (ret < 0) {
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_sysclk(...) returned with error"); //CS
 		return ret;
-
+	}
 	return 0;
 }
 
@@ -349,7 +353,7 @@ static int __init evm_init(void)
 	} else if (machine_is_am335xevm()) {
 		evm_snd_dev_data = &am335x_snd_soc_card;
 		index = 0;
-		printk(KERN_INFO "Detected machine: am335xevm"); //CS
+		printk(KERN_INFO "Detected machine: am335xevm -> evm_snd_dev_data = &am335x_snd_soc_card"); //CS
 	} else
 		return -EINVAL;
 
