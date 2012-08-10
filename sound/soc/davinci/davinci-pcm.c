@@ -191,6 +191,8 @@ static void davinci_pcm_enqueue_dma(struct snd_pcm_substream *substream)
 	unsigned int count;
 	unsigned int fifo_level;
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_enqueue_dma\n"); //CS 
+
 	period_size = snd_pcm_lib_period_bytes(substream);
 	dma_offset = prtd->period * period_size;
 	dma_pos = runtime->dma_addr + dma_offset;
@@ -242,6 +244,8 @@ static void davinci_pcm_dma_irq(unsigned link, u16 ch_status, void *data)
 	struct snd_pcm_substream *substream = data;
 	struct davinci_runtime_data *prtd = substream->runtime->private_data;
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_dma_irq\n"); //CS 
+
 	print_buf_info(prtd->ram_channel, "i ram_channel");
 	pr_debug("davinci_pcm: link=%d, status=0x%x\n", link, ch_status);
 
@@ -267,6 +271,8 @@ static int allocate_sram(struct snd_pcm_substream *substream, unsigned size,
 	struct snd_dma_buffer *iram_dma = NULL;
 	phys_addr_t iram_phys;
 	void *iram_virt = NULL;
+
+	printk(KERN_DEBUG "Entering davinci-pcm.c->allocate_sram\n"); //CS 
 
 	if (buf->private_data || !size)
 		return 0;
@@ -311,6 +317,9 @@ static int ping_pong_dma_setup(struct snd_pcm_substream *substream)
 	unsigned int ping_size = snd_pcm_lib_period_bytes(substream) >> 1;
 	unsigned int fifo_level = prtd->params->fifo_level;
 	unsigned int count;
+	
+	printk(KERN_DEBUG "Entering davinci-pcm.c->ping_pong_dma_setup\n"); //CS 
+
 	if ((data_type == 0) || (data_type > 4)) {
 		printk(KERN_ERR "%s: data_type=%i\n", __func__, data_type);
 		return -EINVAL;
@@ -409,6 +418,8 @@ static int request_ping_pong(struct snd_pcm_substream *substream,
 	int ret;
 	struct davinci_pcm_dma_params *params = prtd->params;
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->request_ping_pong\n"); //CS 
+
 	/* Request ram master channel */
 	ret = prtd->ram_channel = edma_alloc_channel(EDMA_CHANNEL_ANY,
 				  davinci_pcm_dma_irq, substream,
@@ -501,6 +512,8 @@ static int davinci_pcm_dma_request(struct snd_pcm_substream *substream)
 	struct davinci_pcm_dma_params *params = prtd->params;
 	int ret;
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_request\n"); //CS 
+
 	if (!params)
 		return -ENODEV;
 
@@ -552,6 +565,8 @@ static int davinci_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 	struct davinci_runtime_data *prtd = substream->runtime->private_data;
 	int ret = 0;
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_trigger\n"); //CS 
+
 	spin_lock(&prtd->lock);
 
 	switch (cmd) {
@@ -585,6 +600,8 @@ static int davinci_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 static int davinci_pcm_prepare(struct snd_pcm_substream *substream)
 {
 	struct davinci_runtime_data *prtd = substream->runtime->private_data;
+
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_prepare\n"); //CS 
 
 	davinci_pcm_period_reset(substream);
 	if (prtd->ram_channel >= 0) {
@@ -640,6 +657,8 @@ davinci_pcm_pointer(struct snd_pcm_substream *substream)
 	int asp_count;
 	unsigned int period_size = snd_pcm_lib_period_bytes(substream);
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_pointer\n"); //CS 
+
 	/*
 	 * There is a phase offset of 2 periods between the position used by dma
 	 * setup and the position reported in the pointer function. Either +2 in
@@ -671,6 +690,8 @@ static int davinci_pcm_open(struct snd_pcm_substream *substream)
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct davinci_pcm_dma_params *pa;
 	struct davinci_pcm_dma_params *params;
+
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_open\n"); //CS 
 
 	pa = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
 	if (!pa)
@@ -715,6 +736,8 @@ static int davinci_pcm_close(struct snd_pcm_substream *substream)
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct davinci_runtime_data *prtd = runtime->private_data;
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_close\n"); //CS 
+
 	if (prtd->ram_channel >= 0)
 		edma_stop(prtd->ram_channel);
 	if (prtd->asp_channel >= 0)
@@ -747,12 +770,14 @@ static int davinci_pcm_close(struct snd_pcm_substream *substream)
 static int davinci_pcm_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_pcm_hw_params *hw_params)
 {
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_hw_params\n"); //CS 
 	return snd_pcm_lib_malloc_pages(substream,
 					params_buffer_bytes(hw_params));
 }
 
 static int davinci_pcm_hw_free(struct snd_pcm_substream *substream)
 {
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_hw_free\n"); //CS 	
 	return snd_pcm_lib_free_pages(substream);
 }
 
@@ -760,6 +785,8 @@ static int davinci_pcm_mmap(struct snd_pcm_substream *substream,
 			    struct vm_area_struct *vma)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
+
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_mmap\n"); //CS 
 
 	return dma_mmap_writecombine(substream->pcm->card->dev, vma,
 				     runtime->dma_area,
@@ -785,6 +812,8 @@ static int davinci_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream,
 	struct snd_pcm_substream *substream = pcm->streams[stream].substream;
 	struct snd_dma_buffer *buf = &substream->dma_buffer;
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_preallocate_dma_buffer\n"); //CS 
+
 	buf->dev.type = SNDRV_DMA_TYPE_DEV;
 	buf->dev.dev = pcm->card->dev;
 	buf->private_data = NULL;
@@ -806,6 +835,8 @@ static void davinci_pcm_free(struct snd_pcm *pcm)
 	struct snd_pcm_substream *substream;
 	struct snd_dma_buffer *buf;
 	int stream;
+
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_free\n"); //CS 
 
 	for (stream = 0; stream < 2; stream++) {
 		struct snd_dma_buffer *iram_dma;
@@ -837,6 +868,8 @@ static int davinci_pcm_new(struct snd_soc_pcm_runtime *rtd)
 	struct snd_soc_dai *dai = rtd->cpu_dai;
 	struct snd_pcm *pcm = rtd->pcm;
 	int ret;
+
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_new\n"); //CS 
 
 	if (!card->dev->dma_mask)
 		card->dev->dma_mask = &davinci_pcm_dmamask;

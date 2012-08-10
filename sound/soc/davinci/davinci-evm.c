@@ -31,8 +31,16 @@
 
 #include "../codecs/ad193x.h"
 
+
+/*
 #define AUDIO_FORMAT (SND_SOC_DAIFMT_DSP_B | \
 		SND_SOC_DAIFMT_CBM_CFM | SND_SOC_DAIFMT_IB_NF)
+*/
+
+#define AUDIO_FORMAT (SND_SOC_DAIFMT_DSP_A | \
+		SND_SOC_DAIFMT_IB_IF | SND_SOC_DAIFMT_CBM_CFM)
+
+
 static int evm_hw_params(struct snd_pcm_substream *substream,
 			 struct snd_pcm_hw_params *params)
 {
@@ -86,8 +94,7 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
 
 	/* set codec DAI configuration */ //CS: insterted here for debugging
 	//ret = snd_soc_dai_set_fmt(codec_dai, AUDIO_FORMAT);
-	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_DSP_A |
-		SND_SOC_DAIFMT_IB_IF | SND_SOC_DAIFMT_CBM_CFM);
+	ret = snd_soc_dai_set_fmt(codec_dai, AUDIO_FORMAT);
 	if (ret < 0) {
 		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(codec_dai) returned with error: %d\n",ret); //CS
 		return ret;

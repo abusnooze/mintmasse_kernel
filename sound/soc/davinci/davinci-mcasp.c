@@ -324,6 +324,8 @@ static inline void mcasp_set_ctl_reg(void __iomem *regs, u32 val)
 {
 	int i = 0;
 
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->mcasp_set_ctl_reg\n"); //CS 
+
 	mcasp_set_bits(regs, val);
 
 	/* programming GBLCTL needs to read back from GBLCTL and verfiy */
@@ -339,6 +341,8 @@ static inline void mcasp_set_ctl_reg(void __iomem *regs, u32 val)
 
 static void mcasp_start_rx(struct davinci_audio_dev *dev)
 {
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->mcasp_start_rx\n"); //CS
+
 	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLR_REG, RXHCLKRST);
 	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLR_REG, RXCLKRST);
 	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLR_REG, RXSERCLR);
@@ -356,6 +360,8 @@ static void mcasp_start_tx(struct davinci_audio_dev *dev)
 {
 	u8 offset = 0, i;
 	u32 cnt;
+
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->mcasp_start_tx\n"); //CS
 
 	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLX_REG, TXHCLKRST);
 	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLX_REG, TXCLKRST);
@@ -383,6 +389,8 @@ static void mcasp_start_tx(struct davinci_audio_dev *dev)
 
 static void davinci_mcasp_start(struct davinci_audio_dev *dev, int stream)
 {
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->mcasp_start\n"); //CS
+
 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		if (dev->txnumevt) {	/* flush and enable FIFO */
 			if (dev->version == MCASP_VERSION_3) {
@@ -418,18 +426,24 @@ static void davinci_mcasp_start(struct davinci_audio_dev *dev, int stream)
 
 static void mcasp_stop_rx(struct davinci_audio_dev *dev)
 {
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->mcasp_stop_rx\n"); //CS
+
 	mcasp_set_reg(dev->base + DAVINCI_MCASP_GBLCTLR_REG, 0);
 	mcasp_set_reg(dev->base + DAVINCI_MCASP_RXSTAT_REG, 0xFFFFFFFF);
 }
 
 static void mcasp_stop_tx(struct davinci_audio_dev *dev)
 {
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->mcasp_stop_tx\n"); //CS
+
 	mcasp_set_reg(dev->base + DAVINCI_MCASP_GBLCTLX_REG, 0);
 	mcasp_set_reg(dev->base + DAVINCI_MCASP_TXSTAT_REG, 0xFFFFFFFF);
 }
 
 static void davinci_mcasp_stop(struct davinci_audio_dev *dev, int stream)
 {
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_mcasp_stop\n"); //CS
+
 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		if (dev->txnumevt) {	/* disable FIFO */
 			if (dev->version == MCASP_VERSION_3)
@@ -458,6 +472,8 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 {
 	struct davinci_audio_dev *dev = snd_soc_dai_get_drvdata(cpu_dai);
 	void __iomem *base = dev->base;
+
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_mcasp_set_dai_fmt\n"); //CS 
 
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBS_CFS:
@@ -546,6 +562,8 @@ static int davinci_config_channel_size(struct davinci_audio_dev *dev,
 	u32 fmt = 0;
 	u32 mask, rotate;
 
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_config_channel_size\n"); //CS
+
 	switch (channel_size) {
 	case DAVINCI_AUDIO_WORD_8:
 		fmt = 0x03;
@@ -612,6 +630,8 @@ static void davinci_hw_common_param(struct davinci_audio_dev *dev, int stream)
 	int i;
 	u8 tx_ser = 0;
 	u8 rx_ser = 0;
+
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_hw_common_param\n"); //CS
 
 	/* Default configuration */
 	mcasp_set_bits(dev->base + DAVINCI_MCASP_PWREMUMGT_REG, MCASP_SOFT);
@@ -685,6 +705,8 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
 	int i, active_slots;
 	u32 mask = 0;
 
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_hw_param\n"); //CS
+
 	active_slots = (dev->tdm_slots > 31) ? 32 : dev->tdm_slots;
 	for (i = 0; i < active_slots; i++)
 		mask |= (1 << i);
@@ -729,6 +751,8 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
 /* S/PDIF */
 static void davinci_hw_dit_param(struct davinci_audio_dev *dev)
 {
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_hw_dit_param\n"); //CS
+
 	/* Set the PDIR for Serialiser as output */
 	mcasp_set_bits(dev->base + DAVINCI_MCASP_PDIR_REG, AFSX);
 
@@ -769,6 +793,8 @@ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
 					&dev->dma_params[substream->stream];
 	int word_length;
 	u8 fifo_level;
+
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_mcasp_hw_params\n"); //CS
 
 	davinci_hw_common_param(dev, substream->stream);
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
@@ -822,6 +848,8 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
 	struct davinci_audio_dev *dev = snd_soc_dai_get_drvdata(cpu_dai);
 	int ret = 0;
 
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_mcasp_trigger\n"); //CS
+
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_RESUME:
 	case SNDRV_PCM_TRIGGER_START:
@@ -858,6 +886,8 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
 				 struct snd_soc_dai *dai)
 {
 	struct davinci_audio_dev *dev = snd_soc_dai_get_drvdata(dai);
+
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_mcasp_startup\n"); //CS
 
 	snd_soc_dai_set_dma_data(dai, substream, dev->dma_params);
 	return 0;
@@ -1040,6 +1070,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 
 	pr_info("%s: Entry: plat dev: 0x%08X\n", 
 		__FUNCTION__, (u32) pdev ); //JJH
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_mcasp_probe\n"); //CS
 
 	dev = kzalloc(sizeof(struct davinci_audio_dev), GFP_KERNEL);
 	if (!dev)
@@ -1167,6 +1198,8 @@ static int davinci_mcasp_remove(struct platform_device *pdev)
 {
 	struct davinci_audio_dev *dev = dev_get_drvdata(&pdev->dev);
 	struct resource *mem;
+
+	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_mcasp_remove\n"); //CS
 
 	snd_soc_unregister_dai(&pdev->dev);
 	clk_disable(dev->clk);
