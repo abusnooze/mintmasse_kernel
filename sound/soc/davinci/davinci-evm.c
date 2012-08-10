@@ -68,23 +68,35 @@ static int evm_hw_params(struct snd_pcm_substream *substream,
 	}else
 		return -EINVAL;
 
-	/* set codec DAI configuration */
-	ret = snd_soc_dai_set_fmt(codec_dai, AUDIO_FORMAT);
-	if (ret < 0) {
-		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(...) returned with error: "); //CS
-		return ret;
-	}
+	///* set codec DAI configuration */ //CS change order for debugging
+	//ret = snd_soc_dai_set_fmt(codec_dai, AUDIO_FORMAT);
+	//if (ret < 0) {
+	//	printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(...) returned with error: "); //CS
+	//	return ret;
+	//}
+
 	/* set cpu DAI configuration */
 	ret = snd_soc_dai_set_fmt(cpu_dai, AUDIO_FORMAT);
 	if (ret < 0) {
-		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(...) returned with error"); //CS
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(cpu_dai) returned with error"); //CS
+		return ret;
+	} else {
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(cpu_dai) successful"); //CS
+	}
+
+	/* set codec DAI configuration */ //CS: insterted here for debugging
+	//ret = snd_soc_dai_set_fmt(codec_dai, AUDIO_FORMAT);
+	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_DSP_A |
+		SND_SOC_DAIFMT_IB_IF | SND_SOC_DAIFMT_CBM_CFM);
+	if (ret < 0) {
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_fmt(codec_dai) returned with error: %d\n",ret); //CS
 		return ret;
 	}
 
 	/* set the codec system clock */
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, sysclk, SND_SOC_CLOCK_OUT);
 	if (ret < 0) {
-		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_sysclk(...) returned with error"); //CS
+		printk(KERN_DEBUG "davinci-evm.c -> evm_hw_params: snd_soc_dai_set_sysclk(codec_dai) returned with error"); //CS
 		return ret;
 	}
 	return 0;
