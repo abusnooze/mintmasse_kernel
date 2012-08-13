@@ -612,11 +612,15 @@ static struct pinmux_config mcasp1_pin_mux[] = {
 
 //CS: added from: 
 //CS: https://groups.google.com/forum/#!msg/beagleboard/9MewKu48jJM/mS6h5vldlj8J
+//[1]: alternative?: mcasp0_aclkr_mux3 -> P9.12 mode 6 (proc: U18, mode0name = gpmc_be1n)
+//[2]: alternative?: P9.27 mode 0 (proc: C13, mode0name = mcasp0_fsr)
 static struct pinmux_config mcasp0_pin_mux[] = {
          {"lcd_data8.mcasp0_aclkx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN},
          {"lcd_data9.mcasp0_fsx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN},
          {"lcd_data12.mcasp0_axr2", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN},
          {"lcd_data13.mcasp0_axr3", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN},
+	 //{"lcd_data12.mcasp0_aclkr" , OMAP_MUX_MODE3 | ?}, //[1]	
+	 //{"lcd_data13.mcasp0_fsr", OMAP_MUX_MODE3 | ?}, //[2]
          {NULL, 0},
 }; 
 
@@ -1037,6 +1041,7 @@ static void rgmii2_init(int evm_id, int profile)
 
 static void mii1_init(int evm_id, int profile)
 {
+	printk(KERN_DEBUG "Entering board-am335xevm.c->mii1_init..."); //CS
 	setup_pin_mux(mii1_pin_mux);
 	return;
 }
@@ -1049,12 +1054,14 @@ static void rmii1_init(int evm_id, int profile)
 
 static void usb0_init(int evm_id, int profile)
 {
+	printk(KERN_DEBUG "Entering board-am335xevm.c->usb0_init..."); //CS
 	setup_pin_mux(usb0_pin_mux);
 	return;
 }
 
 static void usb1_init(int evm_id, int profile)
 {
+	printk(KERN_DEBUG "Entering board-am335xevm.c->usb1_init..."); //CS
 	setup_pin_mux(usb1_pin_mux);
 	return;
 }
@@ -1486,6 +1493,7 @@ static struct i2c_board_info am335x_i2c_boardinfo2[] = {
 
 static void i2c2_init(int evm_id, int profile)
 {
+	printk(KERN_DEBUG "Entering board-am335xevm.c->i2c2_init..."); //CS
 	setup_pin_mux(i2c2_pin_mux);
 	omap_register_i2c_bus(3, 100, am335x_i2c_boardinfo2,
 			ARRAY_SIZE(am335x_i2c_boardinfo2));
@@ -1507,8 +1515,8 @@ static void mcasp1_init(int evm_id, int profile)
 /* Setup McASP 0 */
 static void mcasp0_init(int evm_id, int profile)
 {
-	pr_info("%s: Entry\n", __FUNCTION__);
-	printk(KERN_DEBUG "abu: Entering board-am335xevm.c->mcasp0_init\n");
+	//pr_info("%s: Entry\n", __FUNCTION__);
+	printk(KERN_DEBUG "Entering board-am335xevm.c->mcasp0_init\n");
 	/* Configure McASP */
 	//JJH done now in driver
 	//JJH	setup_pin_mux(mcasp0_pin_mux);
@@ -1652,6 +1660,8 @@ static void d_can_init(int evm_id, int profile)
 
 static void mmc0_init(int evm_id, int profile)
 {
+	printk(KERN_DEBUG "Entering board-am335xevm.c->mmc0_init..."); //CS
+
 	setup_pin_mux(mmc0_pin_mux);
 
 	omap2_hsmmc_init(am335x_mmc);
@@ -1669,6 +1679,8 @@ static void tps65217_init(int evm_id, int profile)
 {
 	struct i2c_adapter *adapter;
 	struct i2c_client *client;
+
+	printk(KERN_DEBUG "Entering board-am335xevm.c->tps65217_init..."); //CS
 
 	/* I2C1 adapter request */
 	adapter = i2c_get_adapter(1);
@@ -2019,11 +2031,14 @@ static void am335x_evm_setup(struct memory_accessor *mem_acc, void *context)
 	int ret;
 	char tmp[10];
 
+	printk(KERN_DEBUG "Entering board-am335xevm.c->am335x_evm_setup..."); //CS
+
 	/* 1st get the MAC address from EEPROM */
 	ret = mem_acc->read(mem_acc, (char *)&am335x_mac_addr,
 		EEPROM_MAC_ADDRESS_OFFSET, sizeof(am335x_mac_addr));
 
 	if (ret != sizeof(am335x_mac_addr)) {
+		printk(KERN_DEBUG "board-am335xevm.c->am335x_evm_setup: EVM Config read fail"); //CS
 		pr_warning("AM335X: EVM Config read fail: %d\n", ret);
 		return;
 	}

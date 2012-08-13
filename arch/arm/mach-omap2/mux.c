@@ -253,6 +253,7 @@ int __init omap_mux_init_signal(const char *muxname, int val)
 
 	old_mode = omap_mux_read(partition, mux->reg_offset);
 	mux_mode |= val;
+	printk(KERN_DEBUG "mux.c->omap_mux_init_signal: Setting signal %s 0x%04x -> 0x%04x\n", muxname, old_mode, mux_mode); //CS
 	pr_debug("%s: Setting signal %s 0x%04x -> 0x%04x\n",
 			 __func__, muxname, old_mode, mux_mode);
 	omap_mux_write(partition, mux_mode, mux->reg_offset);

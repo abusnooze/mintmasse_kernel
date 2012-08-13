@@ -2631,13 +2631,19 @@ EXPORT_SYMBOL_GPL(snd_soc_put_volsw_2r_sx);
 int snd_soc_dai_set_sysclk(struct snd_soc_dai *dai, int clk_id,
 	unsigned int freq, int dir)
 {
-	if (dai->driver && dai->driver->ops->set_sysclk)
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_dai_set_sysclk..."); //CS
+
+	if (dai->driver && dai->driver->ops->set_sysclk) {
+		printk(KERN_DEBUG "returning dai->driver->ops->set_sysclk(dai, clk_id, freq, dir)"); //CS
 		return dai->driver->ops->set_sysclk(dai, clk_id, freq, dir);
-	else if (dai->codec && dai->codec->driver->set_sysclk)
+	} else if (dai->codec && dai->codec->driver->set_sysclk) {
+		printk(KERN_DEBUG "returning dai->codec->driver->set_sysclk(dai->codec, clk_id, 0, freq, dir)"); //CS
 		return dai->codec->driver->set_sysclk(dai->codec, clk_id, 0,
 						      freq, dir);
-	else
+	} else {
+		printk(KERN_DEBUG "soc-core.c->snd_soc_dai_set_sysclk: returning ERROR!"); //CS
 		return -EINVAL;
+	}
 }
 EXPORT_SYMBOL_GPL(snd_soc_dai_set_sysclk);
 
@@ -2654,6 +2660,7 @@ EXPORT_SYMBOL_GPL(snd_soc_dai_set_sysclk);
 int snd_soc_codec_set_sysclk(struct snd_soc_codec *codec, int clk_id,
 			     int source, unsigned int freq, int dir)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_codec_set_sysclk..."); //CS
 	if (codec->driver->set_sysclk)
 		return codec->driver->set_sysclk(codec, clk_id, source,
 						 freq, dir);
@@ -2675,6 +2682,7 @@ EXPORT_SYMBOL_GPL(snd_soc_codec_set_sysclk);
 int snd_soc_dai_set_clkdiv(struct snd_soc_dai *dai,
 	int div_id, int div)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_dai_set_clkdiv..."); //CS
 	if (dai->driver && dai->driver->ops->set_clkdiv)
 		return dai->driver->ops->set_clkdiv(dai, div_id, div);
 	else
@@ -2695,6 +2703,7 @@ EXPORT_SYMBOL_GPL(snd_soc_dai_set_clkdiv);
 int snd_soc_dai_set_pll(struct snd_soc_dai *dai, int pll_id, int source,
 	unsigned int freq_in, unsigned int freq_out)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_dai_set_pll..."); //CS
 	if (dai->driver && dai->driver->ops->set_pll)
 		return dai->driver->ops->set_pll(dai, pll_id, source,
 					 freq_in, freq_out);
@@ -2719,6 +2728,7 @@ EXPORT_SYMBOL_GPL(snd_soc_dai_set_pll);
 int snd_soc_codec_set_pll(struct snd_soc_codec *codec, int pll_id, int source,
 			  unsigned int freq_in, unsigned int freq_out)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_codec_set_pll..."); //CS
 	if (codec->driver->set_pll)
 		return codec->driver->set_pll(codec, pll_id, source,
 					      freq_in, freq_out);
@@ -2736,10 +2746,15 @@ EXPORT_SYMBOL_GPL(snd_soc_codec_set_pll);
  */
 int snd_soc_dai_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 {
-	if (dai->driver && dai->driver->ops->set_fmt)
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_dai_set_fmt..."); //CS
+
+	if (dai->driver && dai->driver->ops->set_fmt) {
+		printk(KERN_DEBUG "returning dai->driver->ops->set_fmt(dai, fmt)"); //CS
 		return dai->driver->ops->set_fmt(dai, fmt);
-	else
+	} else {
+		printk(KERN_DEBUG "soc-core.c->snd_soc_dai_set_fmt: ERROR!"); //CS
 		return -EINVAL;
+	}
 }
 EXPORT_SYMBOL_GPL(snd_soc_dai_set_fmt);
 
@@ -2757,11 +2772,15 @@ EXPORT_SYMBOL_GPL(snd_soc_dai_set_fmt);
 int snd_soc_dai_set_tdm_slot(struct snd_soc_dai *dai,
 	unsigned int tx_mask, unsigned int rx_mask, int slots, int slot_width)
 {
-	if (dai->driver && dai->driver->ops->set_tdm_slot)
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_dai_set_tdm_slot.."); //CS
+	if (dai->driver && dai->driver->ops->set_tdm_slot) {
+		printk(KERN_DEBUG "returning dai->driver->ops->set_tdm_slot(dai, tx_mask, rx_mask,slots, slot_width)"); //CS
 		return dai->driver->ops->set_tdm_slot(dai, tx_mask, rx_mask,
 				slots, slot_width);
-	else
+	} else {
+		printk(KERN_DEBUG "soc-core.c->snd_soc_dai_set_tdm_slot: returning ERROR!"); //CS
 		return -EINVAL;
+	}
 }
 EXPORT_SYMBOL_GPL(snd_soc_dai_set_tdm_slot);
 
@@ -2781,6 +2800,7 @@ int snd_soc_dai_set_channel_map(struct snd_soc_dai *dai,
 	unsigned int tx_num, unsigned int *tx_slot,
 	unsigned int rx_num, unsigned int *rx_slot)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_dai_set_channel_map."); //CS
 	if (dai->driver && dai->driver->ops->set_channel_map)
 		return dai->driver->ops->set_channel_map(dai, tx_num, tx_slot,
 			rx_num, rx_slot);
@@ -2798,6 +2818,7 @@ EXPORT_SYMBOL_GPL(snd_soc_dai_set_channel_map);
  */
 int snd_soc_dai_set_tristate(struct snd_soc_dai *dai, int tristate)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_dai_set_tristate.."); //CS
 	if (dai->driver && dai->driver->ops->set_tristate)
 		return dai->driver->ops->set_tristate(dai, tristate);
 	else
@@ -2814,6 +2835,7 @@ EXPORT_SYMBOL_GPL(snd_soc_dai_set_tristate);
  */
 int snd_soc_dai_digital_mute(struct snd_soc_dai *dai, int mute)
 {
+	printk(KERN_DEBUG "Entering soc-core.c->snd_soc_dai_digital_mute.."); //CS
 	if (dai->driver && dai->driver->ops->digital_mute)
 		return dai->driver->ops->digital_mute(dai, mute);
 	else

@@ -276,6 +276,12 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	snd_soc_write(codec, AD193X_ADC_CTRL2, adc_reg2);
 	snd_soc_write(codec, AD193X_DAC_CTRL1, dac_reg);
 
+	/*CS: debugging*/
+	adc_reg1 = snd_soc_read(codec, AD193X_ADC_CTRL1); //CS: degubbing
+	adc_reg2 = snd_soc_read(codec, AD193X_ADC_CTRL2); //CS: degubbing
+	dac_reg = snd_soc_read(codec, AD193X_DAC_CTRL1); //CS: degubbing
+	printk(KERN_DEBUG "debug: Read codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x, AD193X_DAC_CTRL1=%#x\n",adc_reg1,adc_reg2,dac_reg); //CS
+
 	return 0;
 }
 
