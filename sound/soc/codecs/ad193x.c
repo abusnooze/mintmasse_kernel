@@ -127,7 +127,7 @@ static int ad193x_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
 	int adc_reg = snd_soc_read(codec, AD193X_ADC_CTRL2);
 
 	printk(KERN_DEBUG "Entering ad193x.c->ad193x_set_tdm_slot\n"); //CS
-	printk(KERN_DEBUG "Read codec registers: AD193X_DAC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x\n",dac_reg, adc_reg); //CS
+	printk(KERN_DEBUG "set_tdm_slot: Read codec registers: AD193X_DAC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x\n",dac_reg, adc_reg); //CS
 
 	dac_reg &= ~AD193X_DAC_CHAN_MASK;
 	adc_reg &= ~AD193X_ADC_CHAN_MASK;
@@ -180,7 +180,7 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	adc_reg2 = snd_soc_read(codec, AD193X_ADC_CTRL2);
 	dac_reg = snd_soc_read(codec, AD193X_DAC_CTRL1);
 
-	printk(KERN_DEBUG "Read codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x, AD193X_DAC_CTRL1=%#x\n",adc_reg1,adc_reg2,dac_reg); //CS
+	printk(KERN_DEBUG "set_dai_fmt: Read codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x, AD193X_DAC_CTRL1=%#x\n",adc_reg1,adc_reg2,dac_reg); //CS
 
 	/* At present, the driver only support AUX ADC mode(SND_SOC_DAIFMT_I2S
 	 * with TDM) and ADC&DAC TDM mode(SND_SOC_DAIFMT_DSP_A)
@@ -439,10 +439,11 @@ static struct snd_soc_codec_driver soc_codec_dev_ad193x = {
 #if defined(CONFIG_SPI_MASTER)
 
 static const struct regmap_config ad193x_spi_regmap_config = {
-	.val_bits = 8,
-	.reg_bits = 16,
-	.read_flag_mask = 0x09,
-	.write_flag_mask = 0x08,
+	.val_bits = 8,           //Number of bits in a register value, mandatory.
+	.reg_bits = 16,          //Number of bits in a register address, mandatory.
+	.read_flag_mask = 0x09,  //Mask to be set in the top byte of the register when doing a read.
+	.write_flag_mask = 0x08, //Mask to be set in the top byte of the register when doing a write. 
+			         //If both read_flag_mask and write_flag_mask are empty the regmap_bus default masks are used.
 };
 
 static int __devinit ad193x_spi_probe(struct spi_device *spi)

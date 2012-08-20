@@ -1811,6 +1811,7 @@ unsigned int snd_soc_read(struct snd_soc_codec *codec, unsigned int reg)
 	unsigned int ret;
 
 	ret = codec->read(codec, reg);
+	printk (KERN_DEBUG "soc-core.c->snd_soc_read: read %x => %x\n", reg, ret); //CS 
 	dev_dbg(codec->dev, "read %x => %x\n", reg, ret);
 	trace_snd_soc_reg_read(codec, reg, ret);
 
@@ -1822,6 +1823,7 @@ unsigned int snd_soc_write(struct snd_soc_codec *codec,
 			   unsigned int reg, unsigned int val)
 {
 	dev_dbg(codec->dev, "write %x = %x\n", reg, val);
+	printk(KERN_DEBUG, "soc-core.c->snd_soc_write: write %x = %x\n", reg, val);
 	trace_snd_soc_reg_write(codec, reg, val);
 	return codec->write(codec, reg, val);
 }
@@ -1851,20 +1853,28 @@ int snd_soc_update_bits(struct snd_soc_codec *codec, unsigned short reg,
 	int change;
 	unsigned int old, new;
 	int ret;
-
+	
+	printk(KERN_DEBUG "soc-core.c->snd_soc_update_bits: calling snd_soc read register: %x\n", reg); //CS
 	ret = snd_soc_read(codec, reg);
-	if (ret < 0)
+	if (ret < 0) {
+		printk(KERN_DEBUG "soc-core.c->snd_soc_update_bits: ERROR: failed to snd_soc_read"); //CS
 		return ret;
+	}
 
 	old = ret;
 	new = (old & ~mask) | (value & mask);
 	change = old != new;
 	if (change) {
+		printk(KERN_DEBUG "soc-core.c->snd_soc_update_bits: applied mask %x, writing %x to register: %x\n", mask, new, reg); //CS
+		printk(KERN_DEBUG "soc-core.c->snd_soc_update_bits: calling snd_soc_write"); //CS
 		ret = snd_soc_write(codec, reg, new);
-		if (ret < 0)
+		if (ret < 0) {
+			printk(KERN_DEBUG "soc-core.c->snd_soc_update_bits: ERROR: failed to snd_soc_write"); //CS
 			return ret;
+		}
 	}
 
+	printk(KERN_DEBUG "soc-core.c->snd_soc_update_bits: return without error"); //CS
 	return change;
 }
 EXPORT_SYMBOL_GPL(snd_soc_update_bits);

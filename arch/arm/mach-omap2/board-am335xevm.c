@@ -619,8 +619,13 @@ static struct pinmux_config mcasp0_pin_mux[] = {
          {"lcd_data9.mcasp0_fsx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN},
          {"lcd_data12.mcasp0_axr2", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN},
          {"lcd_data13.mcasp0_axr3", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN},
-	 //{"lcd_data12.mcasp0_aclkr" , OMAP_MUX_MODE3 | ?}, //[1]	
+	 //{"lcd_data12.mcasp0_aclkr" , OMAP_MUX_MODE3 | ?}, //[1]
+	 //{"gpmc_be1n.mcasp0_aclkr_mux3", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS, 
+			//==> _omap_mux_get_by_name: Could not find signal gpmc_be1n.mcasp0_aclkr_mux3 AND 
+			    //board_am335xevm.c->setup_pin_mux: failed to get muxmode for signalname gpmc_be1n.mcasp0_aclkr_mux3
+	 {"gpmc_be1n.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: try this...also thinkable: gpmc_ben1...
 	 //{"lcd_data13.mcasp0_fsr", OMAP_MUX_MODE3 | ?}, //[2]
+	 {"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_INPUT_PULLDOWN}, //CS //only conflicting with profibus
          {NULL, 0},
 }; 
 
@@ -702,10 +707,13 @@ static struct pinmux_config uart2_pin_mux[] = {
 static void setup_pin_mux(struct pinmux_config *pin_mux)
 {
 	int i;
+	int tmp_ret=0;
 
-	for (i = 0; pin_mux->string_name != NULL; pin_mux++)
-		omap_mux_init_signal(pin_mux->string_name, pin_mux->val);
-
+	for (i = 0; pin_mux->string_name != NULL; pin_mux++) {
+		tmp_ret = omap_mux_init_signal(pin_mux->string_name, pin_mux->val);
+		if (tmp_ret < 0)
+			printk(KERN_DEBUG "board_am335xevm.c->setup_pin_mux: failed to get muxmode for signalname %s",pin_mux->string_name);
+	} 
 }
 
 /* Matrix GPIO Keypad Support for profile-0 only: TODO */
@@ -1205,7 +1213,7 @@ static struct spi_board_info bone_spi1_info[] = { //CS: added this struct
 		.max_speed_hz = 3125000, //not sure about this value (48000000 used by communist-code)
 		.bus_num = 2,
 		.chip_select = 0,
-		.mode = SPI_MODE_3,
+		.mode = SPI_MODE_0, //clock should start low -> CPOL = 0, data should be sampled on leading edge -> CPHA = 0 ==> spi mode 0
 	},
 };
 
