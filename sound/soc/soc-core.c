@@ -1811,7 +1811,7 @@ unsigned int snd_soc_read(struct snd_soc_codec *codec, unsigned int reg)
 	unsigned int ret;
 
 	ret = codec->read(codec, reg);
-	printk (KERN_DEBUG "soc-core.c->snd_soc_read: read %x => %x\n", reg, ret); //CS 
+	printk (KERN_DEBUG "soc-core.c->snd_soc_read: read 0x%x = 0x%x\n", reg, ret); //CS 
 	dev_dbg(codec->dev, "read %x => %x\n", reg, ret);
 	trace_snd_soc_reg_read(codec, reg, ret);
 
@@ -1823,7 +1823,7 @@ unsigned int snd_soc_write(struct snd_soc_codec *codec,
 			   unsigned int reg, unsigned int val)
 {
 	dev_dbg(codec->dev, "write %x = %x\n", reg, val);
-	printk(KERN_DEBUG, "soc-core.c->snd_soc_write: write %x = %x\n", reg, val);
+	printk(KERN_DEBUG "soc-core.c->snd_soc_write: write 0x%x = 0x%x\n", reg, val);
 	trace_snd_soc_reg_write(codec, reg, val);
 	return codec->write(codec, reg, val);
 }
@@ -2017,6 +2017,8 @@ int snd_soc_add_controls(struct snd_soc_codec *codec,
 	struct snd_card *card = codec->card->snd_card;
 	int err, i;
 
+	printk(KERN_DEBUG "Enter soc-core.c->snd_soc_add_controls. Add %d new controls\n", num_controls);
+
 	for (i = 0; i < num_controls; i++) {
 		const struct snd_kcontrol_new *control = &controls[i];
 		err = snd_ctl_add(card, snd_soc_cnew(control, codec,
@@ -2025,6 +2027,7 @@ int snd_soc_add_controls(struct snd_soc_codec *codec,
 		if (err < 0) {
 			dev_err(codec->dev, "%s: Failed to add %s: %d\n",
 				codec->name, control->name, err);
+			printk(KERN_DEBUG "%s: Failed to add %s: %d\n", codec->name, control->name, err);
 			return err;
 		}
 	}

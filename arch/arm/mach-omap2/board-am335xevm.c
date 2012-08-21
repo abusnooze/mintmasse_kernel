@@ -499,11 +499,13 @@ static struct pinmux_config spi0_pin_mux[] = {
 };
 
 /* Module pin mux for SPI flash */
+//d0 auf COUT von AD1974 (try with pull down)
+//d1 auf CIN von AD1974
 static struct pinmux_config spi1_pin_mux[] = {
 	{"mcasp0_aclkx.spi1_sclk", OMAP_MUX_MODE3 | AM33XX_PULL_ENBL
 		| AM33XX_INPUT_EN},
 	{"mcasp0_fsx.spi1_d0", OMAP_MUX_MODE3 | AM33XX_PULL_ENBL
-		| AM33XX_PULL_UP | AM33XX_INPUT_EN},
+		| AM33XX_INPUT_EN},
 	{"mcasp0_axr0.spi1_d1", OMAP_MUX_MODE3 | AM33XX_PULL_ENBL
 		| AM33XX_INPUT_EN},
 	{"mcasp0_ahclkr.spi1_cs0", OMAP_MUX_MODE3 | AM33XX_PULL_ENBL
@@ -623,7 +625,8 @@ static struct pinmux_config mcasp0_pin_mux[] = {
 	 //{"gpmc_be1n.mcasp0_aclkr_mux3", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS, 
 			//==> _omap_mux_get_by_name: Could not find signal gpmc_be1n.mcasp0_aclkr_mux3 AND 
 			    //board_am335xevm.c->setup_pin_mux: failed to get muxmode for signalname gpmc_be1n.mcasp0_aclkr_mux3
-	 {"gpmc_be1n.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: try this...also thinkable: gpmc_ben1...
+	 //{"gpmc_be1n.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: try this...also thinkable: gpmc_ben1...
+	 {"gpmc_ben1.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: now try this
 	 //{"lcd_data13.mcasp0_fsr", OMAP_MUX_MODE3 | ?}, //[2]
 	 {"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_INPUT_PULLDOWN}, //CS //only conflicting with profibus
          {NULL, 0},
@@ -1210,7 +1213,7 @@ static struct spi_board_info am335x_spi1_slave_info[] = {
 static struct spi_board_info bone_spi1_info[] = { //CS: added this struct
 	{
 		.modalias = "ad193x",
-		.max_speed_hz = 3125000, //not sure about this value (48000000 used by communist-code)
+		.max_speed_hz = 312500, //test: set it 10 times slower... //3125000 //not sure about this value (48000000 used by communist-code)
 		.bus_num = 2,
 		.chip_select = 0,
 		.mode = SPI_MODE_0, //clock should start low -> CPOL = 0, data should be sampled on leading edge -> CPHA = 0 ==> spi mode 0
