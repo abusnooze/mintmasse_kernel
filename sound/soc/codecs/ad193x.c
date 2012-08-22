@@ -30,13 +30,18 @@ struct ad193x_priv {
 /*
  * AD193X volume/mute/de-emphasis etc. controls
  */
+
+/* //CS commented out
 static const char *ad193x_deemp[] = {"None", "48kHz", "44.1kHz", "32kHz"};
 
 static const struct soc_enum ad193x_deemp_enum =
 	SOC_ENUM_SINGLE(AD193X_DAC_CTRL2, 1, 4, ad193x_deemp);
+*/
 
 static const struct snd_kcontrol_new ad193x_snd_controls[] = {
 	/* DAC volume control */
+
+	/*CS
 	SOC_DOUBLE_R("DAC1 Volume", AD193X_DAC_L1_VOL,
 			AD193X_DAC_R1_VOL, 0, 0xFF, 1),
 	SOC_DOUBLE_R("DAC2 Volume", AD193X_DAC_L2_VOL,
@@ -45,6 +50,7 @@ static const struct snd_kcontrol_new ad193x_snd_controls[] = {
 			AD193X_DAC_R3_VOL, 0, 0xFF, 1),
 	SOC_DOUBLE_R("DAC4 Volume", AD193X_DAC_L4_VOL,
 			AD193X_DAC_R4_VOL, 0, 0xFF, 1),
+	*/
 
 	/* ADC switch control */
 	SOC_DOUBLE("ADC1 Switch", AD193X_ADC_CTRL0, AD193X_ADCL1_MUTE,
@@ -53,6 +59,7 @@ static const struct snd_kcontrol_new ad193x_snd_controls[] = {
 		AD193X_ADCR2_MUTE, 1, 1),
 
 	/* DAC switch control */
+	/*CS
 	SOC_DOUBLE("DAC1 Switch", AD193X_DAC_CHNL_MUTE, AD193X_DACL1_MUTE,
 		AD193X_DACR1_MUTE, 1, 1),
 	SOC_DOUBLE("DAC2 Switch", AD193X_DAC_CHNL_MUTE, AD193X_DACL2_MUTE,
@@ -61,37 +68,38 @@ static const struct snd_kcontrol_new ad193x_snd_controls[] = {
 		AD193X_DACR3_MUTE, 1, 1),
 	SOC_DOUBLE("DAC4 Switch", AD193X_DAC_CHNL_MUTE, AD193X_DACL4_MUTE,
 		AD193X_DACR4_MUTE, 1, 1),
+	*/
 
 	/* ADC high-pass filter */
 	SOC_SINGLE("ADC High Pass Filter Switch", AD193X_ADC_CTRL0,
 			AD193X_ADC_HIGHPASS_FILTER, 1, 0),
 
 	/* DAC de-emphasis */
-	SOC_ENUM("Playback Deemphasis", ad193x_deemp_enum),
+	//SOC_ENUM("Playback Deemphasis", ad193x_deemp_enum), //CS
 };
 
 static const struct snd_soc_dapm_widget ad193x_dapm_widgets[] = {
-	SND_SOC_DAPM_DAC("DAC", "Playback", AD193X_DAC_CTRL0, 0, 1),
-	SND_SOC_DAPM_ADC("ADC", "Capture", SND_SOC_NOPM, 0, 0),
+	//SND_SOC_DAPM_DAC("DAC", "Playback", AD193X_DAC_CTRL0, 0, 1),
+	SND_SOC_DAPM_ADC("ADC", "Capture", SND_SOC_NOPM, 0, 0), //SND_SOC_NOPM=-1 ... widget has no PM register bit
 	SND_SOC_DAPM_SUPPLY("PLL_PWR", AD193X_PLL_CLK_CTRL0, 0, 1, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("ADC_PWR", AD193X_ADC_CTRL0, 0, 1, NULL, 0),
-	SND_SOC_DAPM_OUTPUT("DAC1OUT"),
-	SND_SOC_DAPM_OUTPUT("DAC2OUT"),
-	SND_SOC_DAPM_OUTPUT("DAC3OUT"),
-	SND_SOC_DAPM_OUTPUT("DAC4OUT"),
+	//SND_SOC_DAPM_OUTPUT("DAC1OUT"),
+	//SND_SOC_DAPM_OUTPUT("DAC2OUT"),
+	//SND_SOC_DAPM_OUTPUT("DAC3OUT"),
+	//SND_SOC_DAPM_OUTPUT("DAC4OUT"),
 	SND_SOC_DAPM_INPUT("ADC1IN"),
 	SND_SOC_DAPM_INPUT("ADC2IN"),
 };
 
 static const struct snd_soc_dapm_route audio_paths[] = {
-	{ "DAC", NULL, "PLL_PWR" },
+	//{ "DAC", NULL, "PLL_PWR" },
 	{ "ADC", NULL, "PLL_PWR" },
-	{ "DAC", NULL, "ADC_PWR" },
+	//{ "DAC", NULL, "ADC_PWR" },
 	{ "ADC", NULL, "ADC_PWR" },
-	{ "DAC1OUT", "DAC1 Switch", "DAC" },
-	{ "DAC2OUT", "DAC2 Switch", "DAC" },
-	{ "DAC3OUT", "DAC3 Switch", "DAC" },
-	{ "DAC4OUT", "DAC4 Switch", "DAC" },
+	//{ "DAC1OUT", "DAC1 Switch", "DAC" },
+	//{ "DAC2OUT", "DAC2 Switch", "DAC" },
+	//{ "DAC3OUT", "DAC3 Switch", "DAC" },
+	//{ "DAC4OUT", "DAC4 Switch", "DAC" },
 	{ "ADC", "ADC1 Switch", "ADC1IN" },
 	{ "ADC", "ADC2 Switch", "ADC2IN" },
 };
@@ -104,8 +112,9 @@ static int ad193x_mute(struct snd_soc_dai *dai, int mute)
 {
 	struct snd_soc_codec *codec = dai->codec;
 
-	printk(KERN_DEBUG "Entering ad193x.c->ad193x_mute\n"); //CS
-
+	
+	printk(KERN_DEBUG "Entering ad193x.c->ad193x_mute...do nothing\n"); //CS
+	/* //CS: commented out
 	if (mute)
 		snd_soc_update_bits(codec, AD193X_DAC_CTRL2,
 				    AD193X_DAC_MASTER_MUTE,
@@ -113,7 +122,7 @@ static int ad193x_mute(struct snd_soc_dai *dai, int mute)
 	else
 		snd_soc_update_bits(codec, AD193X_DAC_CTRL2,
 				    AD193X_DAC_MASTER_MUTE, 0);
-
+	*/
 	printk(KERN_DEBUG "Exit ad193x.c->ad193x_mute\n"); //CS
 	return 0;
 }
@@ -123,34 +132,34 @@ static int ad193x_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
 {
 	struct snd_soc_codec *codec = dai->codec;
 	int tmp = 0; //CS
-	int dac_reg = snd_soc_read(codec, AD193X_DAC_CTRL1);
+	//int dac_reg = snd_soc_read(codec, AD193X_DAC_CTRL1); //CS
 	int adc_reg = snd_soc_read(codec, AD193X_ADC_CTRL2);
 
 	printk(KERN_DEBUG "Entering ad193x.c->ad193x_set_tdm_slot\n"); //CS
-	printk(KERN_DEBUG "set_tdm_slot: Read codec registers: AD193X_DAC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x\n",dac_reg, adc_reg); //CS
+	printk(KERN_DEBUG "set_tdm_slot: Read codec registers: AD193X_ADC_CTRL2=%#x\n", adc_reg); //CS
 
-	dac_reg &= ~AD193X_DAC_CHAN_MASK;
+	//dac_reg &= ~AD193X_DAC_CHAN_MASK;
 	adc_reg &= ~AD193X_ADC_CHAN_MASK;
 
 	switch (slots) {
 	case 2:
-		dac_reg |= AD193X_DAC_2_CHANNELS << AD193X_DAC_CHAN_SHFT;
+		//dac_reg |= AD193X_DAC_2_CHANNELS << AD193X_DAC_CHAN_SHFT;
 		adc_reg |= AD193X_ADC_2_CHANNELS << AD193X_ADC_CHAN_SHFT;
 		tmp = AD193X_ADC_2_CHANNELS << AD193X_ADC_CHAN_SHFT;
 		printk(KERN_DEBUG "tdm slots: 2, ADC_CTRL2 |= %#x\n",tmp); //CS
 		break;
 	case 4:
-		dac_reg |= AD193X_DAC_4_CHANNELS << AD193X_DAC_CHAN_SHFT;
+		//dac_reg |= AD193X_DAC_4_CHANNELS << AD193X_DAC_CHAN_SHFT;
 		adc_reg |= AD193X_ADC_4_CHANNELS << AD193X_ADC_CHAN_SHFT;
 		printk(KERN_DEBUG "tdm slots: 4, ADC_CTRL2 |= %#x\n",tmp); //CS
 		break;
 	case 8:
-		dac_reg |= AD193X_DAC_8_CHANNELS << AD193X_DAC_CHAN_SHFT;
+		//dac_reg |= AD193X_DAC_8_CHANNELS << AD193X_DAC_CHAN_SHFT;
 		adc_reg |= AD193X_ADC_8_CHANNELS << AD193X_ADC_CHAN_SHFT;
 		printk(KERN_DEBUG "tdm slots: 8, ADC_CTRL2 |= %#x\n",tmp); //CS
 		break;
 	case 16:
-		dac_reg |= AD193X_DAC_16_CHANNELS << AD193X_DAC_CHAN_SHFT;
+		//dac_reg |= AD193X_DAC_16_CHANNELS << AD193X_DAC_CHAN_SHFT;
 		adc_reg |= AD193X_ADC_16_CHANNELS << AD193X_ADC_CHAN_SHFT;
 		printk(KERN_DEBUG "tdm slots: 16, ADC_CTRL2 |= %#x\n",tmp); //CS
 		break;
@@ -159,8 +168,8 @@ static int ad193x_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
 		return -EINVAL;
 	}
 
-	printk(KERN_DEBUG "Writing codec registers: AD193X_DAC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x\n",dac_reg,adc_reg); //CS
-	snd_soc_write(codec, AD193X_DAC_CTRL1, dac_reg);
+	printk(KERN_DEBUG "Writing codec registers: AD193X_ADC_CTRL2=%#x\n", adc_reg); //CS
+	//snd_soc_write(codec, AD193X_DAC_CTRL1, dac_reg); //CS
 	snd_soc_write(codec, AD193X_ADC_CTRL2, adc_reg);
 
 	printk(KERN_DEBUG "Exit ad193x.c->ad193x_set_tdm_slot\n"); //CS
@@ -171,16 +180,30 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		unsigned int fmt)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
-	int adc_reg1, adc_reg2, dac_reg;
+	int adc_reg1, adc_reg2;
+	int pll_reg1;
+	//int dac_reg;
 
 	int tmp = 0;
 	printk(KERN_DEBUG "Entering ad193x.c->ad193x_set_dai_fmt"); //CS
 
+	/*TEST---------------*/
+	pll_reg1 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL1); 
+	printk(KERN_DEBUG "test: read AD193X_PLL_CLK_CTRL1 => value: %#x", pll_reg1); //CS
+	pll_reg1 = 9;
+	printk(KERN_DEBUG "test: write AD193X_PLL_CLK_CTRL1 => value: %#x", pll_reg1); //CS
+	snd_soc_write(codec, AD193X_PLL_CLK_CTRL1, pll_reg1);
+	pll_reg1 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL1);
+	printk(KERN_DEBUG "test: read back AD193X_PLL_CLK_CTRL1 => value: %#x", pll_reg1); //CS
+	/*-------------------*/
+
+	
 	adc_reg1 = snd_soc_read(codec, AD193X_ADC_CTRL1);
 	adc_reg2 = snd_soc_read(codec, AD193X_ADC_CTRL2);
-	dac_reg = snd_soc_read(codec, AD193X_DAC_CTRL1);
+	//dac_reg = snd_soc_read(codec, AD193X_DAC_CTRL1);
 
-	printk(KERN_DEBUG "set_dai_fmt: Read codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x, AD193X_DAC_CTRL1=%#x\n",adc_reg1,adc_reg2,dac_reg); //CS
+	
+	printk(KERN_DEBUG "set_dai_fmt: Read codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x\n",adc_reg1,adc_reg2); //CS
 
 	/* At present, the driver only support AUX ADC mode(SND_SOC_DAIFMT_I2S
 	 * with TDM) and ADC&DAC TDM mode(SND_SOC_DAIFMT_DSP_A)
@@ -207,30 +230,30 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		printk(KERN_DEBUG "normal bit clock + frame\n"); //CS
 		adc_reg2 &= ~AD193X_ADC_LEFT_HIGH; //AD193X_ADC_LEFT_HIGH =0000 0100
 		adc_reg2 &= ~AD193X_ADC_BCLK_INV;  //AD193X_ADC_BCLK_INV  =0000 0010
-		dac_reg &= ~AD193X_DAC_LEFT_HIGH;
-		dac_reg &= ~AD193X_DAC_BCLK_INV;
+		//dac_reg &= ~AD193X_DAC_LEFT_HIGH;
+		//dac_reg &= ~AD193X_DAC_BCLK_INV;
 		break;
 	case SND_SOC_DAIFMT_NB_IF: /* normal bclk + invert frm */
 		printk(KERN_DEBUG "normal bit clock + invert frame\n"); //CS
 		adc_reg2 |= AD193X_ADC_LEFT_HIGH;  
 		adc_reg2 &= ~AD193X_ADC_BCLK_INV;
-		dac_reg |= AD193X_DAC_LEFT_HIGH;
-		dac_reg &= ~AD193X_DAC_BCLK_INV;
+		//dac_reg |= AD193X_DAC_LEFT_HIGH;
+		//dac_reg &= ~AD193X_DAC_BCLK_INV;
 		break;
 	case SND_SOC_DAIFMT_IB_NF: /* invert bclk + normal frm */
 		printk(KERN_DEBUG "invert bit clock + normal frame\n"); //CS
 		adc_reg2 &= ~AD193X_ADC_LEFT_HIGH;
 		adc_reg2 |= AD193X_ADC_BCLK_INV;
-		dac_reg &= ~AD193X_DAC_LEFT_HIGH;
-		dac_reg |= AD193X_DAC_BCLK_INV;
+		//dac_reg &= ~AD193X_DAC_LEFT_HIGH;
+		//dac_reg |= AD193X_DAC_BCLK_INV;
 		break;
 
 	case SND_SOC_DAIFMT_IB_IF: /* invert bclk + frm */
 		printk(KERN_DEBUG "invert bit clock + frame\n"); //CS
 		adc_reg2 |= AD193X_ADC_LEFT_HIGH;
 		adc_reg2 |= AD193X_ADC_BCLK_INV;
-		dac_reg |= AD193X_DAC_LEFT_HIGH;
-		dac_reg |= AD193X_DAC_BCLK_INV;
+		//dac_reg |= AD193X_DAC_LEFT_HIGH;
+		//dac_reg |= AD193X_DAC_BCLK_INV;
 		break;
 	default:
 		printk(KERN_DEBUG "switch2: return -EINVAL"); //CS
@@ -242,45 +265,45 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 		printk(KERN_DEBUG "codec clk & frm master\n"); //CS
 		adc_reg2 |= AD193X_ADC_LCR_MASTER;
 		adc_reg2 |= AD193X_ADC_BCLK_MASTER;
-		dac_reg |= AD193X_DAC_LCR_MASTER;
-		dac_reg |= AD193X_DAC_BCLK_MASTER;
+		//dac_reg |= AD193X_DAC_LCR_MASTER;
+		//dac_reg |= AD193X_DAC_BCLK_MASTER;
 		break;
 	case SND_SOC_DAIFMT_CBS_CFM: /* codec clk slave & frm master */
 		printk(KERN_DEBUG "codec clk slave & frm master\n"); //CS
 		adc_reg2 |= AD193X_ADC_LCR_MASTER;
 		adc_reg2 &= ~AD193X_ADC_BCLK_MASTER;
-		dac_reg |= AD193X_DAC_LCR_MASTER;
-		dac_reg &= ~AD193X_DAC_BCLK_MASTER;
+		//dac_reg |= AD193X_DAC_LCR_MASTER;
+		//dac_reg &= ~AD193X_DAC_BCLK_MASTER;
 		break;
 	case SND_SOC_DAIFMT_CBM_CFS: /* codec clk master & frame slave */
 		printk(KERN_DEBUG "codec clk master & frame slave\n"); //CS
 		adc_reg2 &= ~AD193X_ADC_LCR_MASTER;
 		adc_reg2 |= AD193X_ADC_BCLK_MASTER;
-		dac_reg &= ~AD193X_DAC_LCR_MASTER;
-		dac_reg |= AD193X_DAC_BCLK_MASTER;
+		//dac_reg &= ~AD193X_DAC_LCR_MASTER;
+		//dac_reg |= AD193X_DAC_BCLK_MASTER;
 		break;
 	case SND_SOC_DAIFMT_CBS_CFS: /* codec clk & frm slave */
 		printk(KERN_DEBUG "codec clk & frm slave\n"); //CS
 		adc_reg2 &= ~AD193X_ADC_LCR_MASTER;
 		adc_reg2 &= ~AD193X_ADC_BCLK_MASTER;
-		dac_reg &= ~AD193X_DAC_LCR_MASTER;
-		dac_reg &= ~AD193X_DAC_BCLK_MASTER;
+		//dac_reg &= ~AD193X_DAC_LCR_MASTER;
+		//dac_reg &= ~AD193X_DAC_BCLK_MASTER;
 		break;
 	default:
 		printk(KERN_DEBUG "switch3: return -EINVAL"); //CS
 		return -EINVAL;
 	}
 
-	printk(KERN_DEBUG "Writing codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x, AD193X_DAC_CTRL1=%#x\n",adc_reg1,adc_reg2,dac_reg); //CS
+	printk(KERN_DEBUG "Writing codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x\n",adc_reg1,adc_reg2); //CS
 	snd_soc_write(codec, AD193X_ADC_CTRL1, adc_reg1);
 	snd_soc_write(codec, AD193X_ADC_CTRL2, adc_reg2);
-	snd_soc_write(codec, AD193X_DAC_CTRL1, dac_reg);
+	//snd_soc_write(codec, AD193X_DAC_CTRL1, dac_reg);
 
 	/*CS: debugging*/
 	adc_reg1 = snd_soc_read(codec, AD193X_ADC_CTRL1); //CS: degubbing
 	adc_reg2 = snd_soc_read(codec, AD193X_ADC_CTRL2); //CS: degubbing
-	dac_reg = snd_soc_read(codec, AD193X_DAC_CTRL1); //CS: degubbing
-	printk(KERN_DEBUG "debug: Read codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x, AD193X_DAC_CTRL1=%#x\n",adc_reg1,adc_reg2,dac_reg); //CS
+	//dac_reg = snd_soc_read(codec, AD193X_DAC_CTRL1); //CS: degubbing
+	printk(KERN_DEBUG "debug: Read codec registers: AD193X_ADC_CTRL1=%#x, AD193X_ADC_CTRL2=%#x\n",adc_reg1,adc_reg2); //CS
 
 	return 0;
 }
@@ -349,10 +372,11 @@ static int ad193x_hw_params(struct snd_pcm_substream *substream,
 
 	snd_soc_update_bits(codec, AD193X_PLL_CLK_CTRL0,
 			    AD193X_PLL_INPUT_MASK, master_rate); //PLL_INPUT_MASK=0000 0110
-
+	
+	/* CS
 	snd_soc_update_bits(codec, AD193X_DAC_CTRL2,
 			    AD193X_DAC_WORD_LEN_MASK,
-			    word_len << AD193X_DAC_WORD_LEN_SHFT);
+			    word_len << AD193X_DAC_WORD_LEN_SHFT); */
 
 	snd_soc_update_bits(codec, AD193X_ADC_CTRL1,
 			    AD193X_ADC_WORD_LEN_MASK, word_len); //ADC_WORD_LEN_MASK=0000 0011
@@ -410,11 +434,11 @@ static int ad193x_probe(struct snd_soc_codec *codec)
 	/* default setting for ad193x */
 
 	/* unmute dac channels */
-	snd_soc_write(codec, AD193X_DAC_CHNL_MUTE, 0x0);
+	//snd_soc_write(codec, AD193X_DAC_CHNL_MUTE, 0x0);
 	/* de-emphasis: 48kHz, powedown dac */
-	snd_soc_write(codec, AD193X_DAC_CTRL2, 0x1A);
+	//snd_soc_write(codec, AD193X_DAC_CTRL2, 0x1A);
 	/* powerdown dac, dac in tdm mode */
-	snd_soc_write(codec, AD193X_DAC_CTRL0, 0x41);
+	//snd_soc_write(codec, AD193X_DAC_CTRL0, 0x41);
 	/* high-pass filter enable */
 	snd_soc_write(codec, AD193X_ADC_CTRL0, 0x3);
 	/* sata delay=1, adc aux mode */
@@ -576,12 +600,14 @@ static int __init ad193x_modinit(void)
 	int ret;
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
+	/* CS
 	printk(KERN_DEBUG "init ad193x_modinit : I2C driver..."); //CS
 	ret =  i2c_add_driver(&ad193x_i2c_driver);
 	if (ret != 0) {
 		printk(KERN_ERR "Failed to register AD193X I2C driver: %d\n",
 				ret);
 	}
+	*/
 #endif
 
 #if defined(CONFIG_SPI_MASTER)
@@ -607,8 +633,10 @@ static void __exit ad193x_modexit(void)
 #endif
 
 #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
+	/* CS
 	printk(KERN_DEBUG "ad193x_modexit: i2c_del_driver"); //CS
 	i2c_del_driver(&ad193x_i2c_driver);
+	*/
 #endif
 }
 module_exit(ad193x_modexit);
