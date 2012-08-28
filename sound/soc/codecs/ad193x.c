@@ -81,8 +81,8 @@ static const struct snd_kcontrol_new ad193x_snd_controls[] = {
 static const struct snd_soc_dapm_widget ad193x_dapm_widgets[] = {
 	//SND_SOC_DAPM_DAC("DAC", "Playback", AD193X_DAC_CTRL0, 0, 1),
 	SND_SOC_DAPM_ADC("ADC", "Capture", SND_SOC_NOPM, 0, 0), //SND_SOC_NOPM=-1 ... widget has no PM register bit
-	SND_SOC_DAPM_SUPPLY("PLL_PWR", AD193X_PLL_CLK_CTRL0, 0, 1, NULL, 0),
-	SND_SOC_DAPM_SUPPLY("ADC_PWR", AD193X_ADC_CTRL0, 0, 1, NULL, 0),
+	//SND_SOC_DAPM_SUPPLY("PLL_PWR", AD193X_PLL_CLK_CTRL0, 0, 1, NULL, 0), //CS: test: get rid of the supply dapm widget...
+	//SND_SOC_DAPM_SUPPLY("ADC_PWR", AD193X_ADC_CTRL0, 0, 1, NULL, 0),	//CS: test: get rid of the supply dapm widget...
 	//SND_SOC_DAPM_OUTPUT("DAC1OUT"),
 	//SND_SOC_DAPM_OUTPUT("DAC2OUT"),
 	//SND_SOC_DAPM_OUTPUT("DAC3OUT"),
@@ -93,9 +93,9 @@ static const struct snd_soc_dapm_widget ad193x_dapm_widgets[] = {
 
 static const struct snd_soc_dapm_route audio_paths[] = {
 	//{ "DAC", NULL, "PLL_PWR" },
-	{ "ADC", NULL, "PLL_PWR" },
+	//{ "ADC", NULL, "PLL_PWR" }, //CS: test: get rid of the supply dapm widget...(nur gemeinsam mit dem zeug oben ein/auskommentieren)
 	//{ "DAC", NULL, "ADC_PWR" },
-	{ "ADC", NULL, "ADC_PWR" },
+	//{ "ADC", NULL, "ADC_PWR" }, //CS: test: get rid of the supply dapm widget...(nur gemeinsam mit dem zeug oben ein/auskommentieren)
 	//{ "DAC1OUT", "DAC1 Switch", "DAC" },
 	//{ "DAC2OUT", "DAC2 Switch", "DAC" },
 	//{ "DAC3OUT", "DAC3 Switch", "DAC" },
@@ -183,11 +183,79 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	int adc_reg1, adc_reg2;
 	int pll_reg1;
 	//int dac_reg;
-
+	int regi0, regi1, regi2, regi3, regi4, regi5, regi6, regi7; //only for test
 	int tmp = 0;
 	printk(KERN_DEBUG "Entering ad193x.c->ad193x_set_dai_fmt"); //CS
 
+
+	/*Power up PLL and ADC. Shouldn't that be done in
+	  snd_pcm_open (userspace) as they are powered down
+	  via snd_pcm_close (userspace)?-------------------*/
+	printk(KERN_DEBUG "Power up ADC and PLL (shouldn't that be done elsewhere?)");
+	regi0 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL0);
+	regi5 = snd_soc_read(codec, AD193X_ADC_CTRL0);
+	regi0 &= 0xfe; //clear LSB -> power up PLL
+	regi5 &= 0xfe; //clear LSB -> power up ADC
+	snd_soc_write(codec, AD193X_PLL_CLK_CTRL0, regi0);
+	snd_soc_write(codec, AD193X_ADC_CTRL0, regi5);
+	/*-------------------------------------------------*/
+
+	/*TEST: read all registers---------------*/
+	regi0 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL0);
+	regi1 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL1);
+	regi2 = snd_soc_read(codec, AD193X_AUXPORT_CTRL0);
+	regi3 = snd_soc_read(codec, AD193X_AUXPORT_CTRL1);
+	regi4 = snd_soc_read(codec, AD193X_AUXPORT_CTRL2);  
+	regi5 = snd_soc_read(codec, AD193X_ADC_CTRL0);
+	regi6 = snd_soc_read(codec, AD193X_ADC_CTRL1);
+	regi7 = snd_soc_read(codec, AD193X_ADC_CTRL2);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_PLL_CLK_CTRL0, regi0);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_PLL_CLK_CTRL1, regi1);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_AUXPORT_CTRL0, regi2);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_AUXPORT_CTRL1, regi3);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_AUXPORT_CTRL2, regi4);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_ADC_CTRL0, regi5);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_ADC_CTRL1, regi6);
+ 	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_ADC_CTRL2, regi7);
+	/*--------------------------------------*/
+
+	/*TEST: Write default register settings*/
+	/*
+	snd_soc_write(codec, AD193X_PLL_CLK_CTRL0, 0);
+	snd_soc_write(codec, AD193X_PLL_CLK_CTRL1, 8);
+	snd_soc_write(codec, AD193X_AUXPORT_CTRL0, 0);
+	snd_soc_write(codec, AD193X_AUXPORT_CTRL1, 0);
+	snd_soc_write(codec, AD193X_AUXPORT_CTRL2, 0);  
+	snd_soc_write(codec, AD193X_ADC_CTRL0, 0);
+	snd_soc_write(codec, AD193X_ADC_CTRL1, 0);
+	snd_soc_write(codec, AD193X_ADC_CTRL2, 0);
+	*/
+	/*--------------------------------------*/	
+
+	/*TEST: read all registers---------------*/
+	/*
+	regi0 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL0);
+	regi1 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL1);
+	regi2 = snd_soc_read(codec, AD193X_AUXPORT_CTRL0);
+	regi3 = snd_soc_read(codec, AD193X_AUXPORT_CTRL1);
+	regi4 = snd_soc_read(codec, AD193X_AUXPORT_CTRL2);  
+	regi5 = snd_soc_read(codec, AD193X_ADC_CTRL0);
+	regi6 = snd_soc_read(codec, AD193X_ADC_CTRL1);
+	regi7 = snd_soc_read(codec, AD193X_ADC_CTRL2);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_PLL_CLK_CTRL0, regi0);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_PLL_CLK_CTRL1, regi1);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_AUXPORT_CTRL0, regi2);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_AUXPORT_CTRL1, regi3);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_AUXPORT_CTRL2, regi4);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_ADC_CTRL0, regi5);
+	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_ADC_CTRL1, regi6);
+ 	printk(KERN_DEBUG "readtest: read %#x => %#x\n", AD193X_ADC_CTRL2, regi7);
+	*/
+	/*--------------------------------------*/
+
+
 	/*TEST---------------*/
+	/*
 	pll_reg1 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL1); 
 	printk(KERN_DEBUG "test: read AD193X_PLL_CLK_CTRL1 => value: %#x", pll_reg1); //CS
 	pll_reg1 = 9;
@@ -195,6 +263,7 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	snd_soc_write(codec, AD193X_PLL_CLK_CTRL1, pll_reg1);
 	pll_reg1 = snd_soc_read(codec, AD193X_PLL_CLK_CTRL1);
 	printk(KERN_DEBUG "test: read back AD193X_PLL_CLK_CTRL1 => value: %#x", pll_reg1); //CS
+	*/
 	/*-------------------*/
 
 	
@@ -344,28 +413,35 @@ static int ad193x_hw_params(struct snd_pcm_substream *substream,
 	/* bit size */
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_S16_LE:
+		printk(KERN_DEBUG "ad193x.c->ad193x_hw_params: SNDRV_PCM_FORMAT_S16_LE"); //CS
 		word_len = 3;
 		break;
 	case SNDRV_PCM_FORMAT_S20_3LE:
+		printk(KERN_DEBUG "ad193x.c->ad193x_hw_params: SNDRV_PCM_FORMAT_S20_3LE"); //CS
 		word_len = 1;
 		break;
 	case SNDRV_PCM_FORMAT_S24_LE:
 	case SNDRV_PCM_FORMAT_S32_LE:
+		printk(KERN_DEBUG "ad193x.c->ad193x_hw_params: SNDRV_PCM_FORMAT_S24_LE or SNDRV_PCM_FORMAT_S32_LE"); //CS
 		word_len = 0;
 		break;
 	}
 
 	switch (ad193x->sysclk) {
 	case 12288000:
+		printk(KERN_DEBUG "ad193x.c->ad193x_hw_params: master_rate = AD193X_PLL_INPUT_256"); //CS
 		master_rate = AD193X_PLL_INPUT_256;
 		break;
 	case 18432000:
+		printk(KERN_DEBUG "ad193x.c->ad193x_hw_params: master_rate = AD193X_PLL_INPUT_384"); //CS
 		master_rate = AD193X_PLL_INPUT_384;
 		break;
 	case 24576000:
+		printk(KERN_DEBUG "ad193x.c->ad193x_hw_params: master_rate = AD193X_PLL_INPUT_512;"); //CS
 		master_rate = AD193X_PLL_INPUT_512;
 		break;
 	case 36864000:
+		printk(KERN_DEBUG "ad193x.c->ad193x_hw_params: master_rate = AD193X_PLL_INPUT_768"); //CS
 		master_rate = AD193X_PLL_INPUT_768;
 		break;
 	}
@@ -419,6 +495,7 @@ static int ad193x_probe(struct snd_soc_codec *codec)
 	struct ad193x_priv *ad193x = snd_soc_codec_get_drvdata(codec);
 	struct snd_soc_dapm_context *dapm = &codec->dapm;
 	int ret;
+	int tmp; //CS
 
 	printk(KERN_DEBUG "Entering ad193x_probe"); //CS
 
@@ -439,14 +516,96 @@ static int ad193x_probe(struct snd_soc_codec *codec)
 	//snd_soc_write(codec, AD193X_DAC_CTRL2, 0x1A);
 	/* powerdown dac, dac in tdm mode */
 	//snd_soc_write(codec, AD193X_DAC_CTRL0, 0x41);
+	
+	
 	/* high-pass filter enable */
-	snd_soc_write(codec, AD193X_ADC_CTRL0, 0x3);
+	//snd_soc_write(codec, AD193X_ADC_CTRL0, 0x3);
 	/* sata delay=1, adc aux mode */
-	snd_soc_write(codec, AD193X_ADC_CTRL1, 0x43);
+	//snd_soc_write(codec, AD193X_ADC_CTRL1, 0x43);
 	/* pll input: mclki/xi */
-	snd_soc_write(codec, AD193X_PLL_CLK_CTRL0, 0x99); /* mclk=24.576Mhz: 0x9D; mclk=12.288Mhz: 0x99 */
-	snd_soc_write(codec, AD193X_PLL_CLK_CTRL1, 0x04);
+	//snd_soc_write(codec, AD193X_PLL_CLK_CTRL0, 0x99); /* mclk=24.576Mhz: 0x9D; mclk=12.288Mhz: 0x99 */
+	//snd_soc_write(codec, AD193X_PLL_CLK_CTRL1, 0x04); /* disable on-chip voltage reference */
 
+	/*--------------------------------------------*/	
+	/*Readback register for debugging-------------*/
+	tmp = snd_soc_read(codec, AD193X_PLL_CLK_CTRL0);
+	tmp = snd_soc_read(codec, AD193X_PLL_CLK_CTRL1);
+	tmp = snd_soc_read(codec, AD193X_AUXPORT_CTRL0);
+	tmp = snd_soc_read(codec, AD193X_AUXPORT_CTRL1);
+	tmp = snd_soc_read(codec, AD193X_AUXPORT_CTRL2);  
+	tmp = snd_soc_read(codec, AD193X_ADC_CTRL0);
+	tmp = snd_soc_read(codec, AD193X_ADC_CTRL1);
+	tmp = snd_soc_read(codec, AD193X_ADC_CTRL2);
+	/*---------------------------------------------*/
+
+	/*Writing default values to registers---------*/
+	snd_soc_write(codec, AD193X_PLL_CLK_CTRL0, 0x80);
+		/*   PLL power-down: normal operation [0 (LSB)]
+		     MCKLI/XI pin functionality (PLL active): INPUT 256 (x44.1 or 48 kHz) [00]
+		   ? MCKLO/XO pin: XTAL oscillator enabled (?) [00]
+		     PLL input: MCLKI/XI [00]
+		     Internal MCLK enable: Enable->ADC active [1] 
+		     ==> 0x80*/
+	snd_soc_write(codec, AD193X_PLL_CLK_CTRL1, 0x04);
+		/*   AUXPORT clock source select: PLL clock [0]
+		     ADC clock source select: PLL clock [0]
+		   ? On-chip voltage reference: disable? [1]
+		     PLL lock indicator (READ ONLY!) [x]
+		     Reserved [xxxx]
+		     ==> 0x04*/
+	snd_soc_write(codec, AD193X_AUXPORT_CTRL0, 0x00);
+		/*   Reserved [x]
+		     Sample rate: 32/44.1/48 kHz [00]
+		   ? AUXDATA delay (AUXBLKC periods): 1 (?) [000]
+		   ? Serial format: Stereo (normal) [00]
+		     ==> 0x00*/
+	snd_soc_write(codec, AD193X_AUXPORT_CTRL1, 0x00);
+		/*   Reserved [xx]
+		     AUXBCLKs per frame: 64 (two channels) [00]
+		     AUXLRCLK polarity: Left low [0]
+		     AUXLRCLK master/slave: slave [0]
+		     AUXBCLK master/slave: slave [0]
+		     AUXBCLK source: AUXBCLK pin [0]
+		     AUXBCLK polarity: normal [0]
+		     ==> 0x00*/
+	snd_soc_write(codec, AD193X_AUXPORT_CTRL2, 0x00);
+		/*   Reserved [xxx]
+		     Word width: 24 [00]
+		     Reserve [xxx]
+		     ==> 0x00*/
+	snd_soc_write(codec, AD193X_ADC_CTRL0, 0x00);
+		/*   Power-down: normal [0]
+		     High-pass filter: Off [0]
+		     ADC1L/1R/2L/2R mute: Unmute all [0000]
+		     Output sample rate: 32/44.1/48 kHz [00]
+		     ==> 0x00*/	
+	snd_soc_write(codec, AD193X_ADC_CTRL1, 0x20);
+		/*   Word width: 24 [00]
+		   ? SDATA delay (BCLK periods): 1 [000]
+		   ? Serial format: TDM (daisy chain) [01]
+		     BCLK active edge (TDM_IN): Latch in midcycle (normal) [0]
+		     ==> 0x20*/
+	snd_soc_write(codec, AD193X_ADC_CTRL2, 0xd9);
+		/* ? LRCLK format: Pulse (32-BCLK/channel) [1]
+		     BCLK polarity: Drive out on falling edge (DEF) [0]
+		     LRCLK polarity: Left low [0]
+		     LRCLK master/slave: master [1]
+		   ? BCLKs per frame: 128 [01] 
+		     BCLK master/slave: master [1]
+		   ? BCLK source: internally gernerated [1] 
+		     ==> 0xd9*/
+	/*--------------------------------------------*/	
+	/*Readback register for debugging-------------*/
+	tmp = snd_soc_read(codec, AD193X_PLL_CLK_CTRL0);
+	tmp = snd_soc_read(codec, AD193X_PLL_CLK_CTRL1);
+	tmp = snd_soc_read(codec, AD193X_AUXPORT_CTRL0);
+	tmp = snd_soc_read(codec, AD193X_AUXPORT_CTRL1);
+	tmp = snd_soc_read(codec, AD193X_AUXPORT_CTRL2);  
+	tmp = snd_soc_read(codec, AD193X_ADC_CTRL0);
+	tmp = snd_soc_read(codec, AD193X_ADC_CTRL1);
+	tmp = snd_soc_read(codec, AD193X_ADC_CTRL2);
+	/*---------------------------------------------*/
+	
 	snd_soc_add_controls(codec, ad193x_snd_controls,
 			     ARRAY_SIZE(ad193x_snd_controls));
 	snd_soc_dapm_new_controls(dapm, ad193x_dapm_widgets,
