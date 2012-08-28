@@ -478,6 +478,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBS_CFS:
 		/* codec is clock and frame slave */
+		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: codec is clock and frame slave \n"); //CS 
 		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
 		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
 
@@ -489,6 +490,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		break;
 	case SND_SOC_DAIFMT_CBM_CFS:
 		/* codec is clock master and frame slave */
+		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: codec is clock master and frame slave \n"); //CS
 		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
 		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
 
@@ -502,6 +504,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		break;
 	case SND_SOC_DAIFMT_CBM_CFM:
 		/* codec is clock and frame master */
+		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: codec is clock and frame master \n"); //CS
 		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
 		mcasp_clr_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
 
@@ -518,6 +521,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 
 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
 	case SND_SOC_DAIFMT_IB_NF:
+		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: inverted bit clock, normal frame clock \n"); //CS
 		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXPOL);
 		mcasp_clr_bits(base + DAVINCI_MCASP_TXFMCTL_REG, FSXPOL);
 
@@ -526,6 +530,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		break;
 
 	case SND_SOC_DAIFMT_NB_IF:
+		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: normal bit clock, inverted frame clock \n"); //CS
 		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXPOL);
 		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, FSXPOL);
 
@@ -534,6 +539,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		break;
 
 	case SND_SOC_DAIFMT_IB_IF:
+		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: inverted bit clock, inverted frame clock \n"); //CS
 		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXPOL);
 		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, FSXPOL);
 
@@ -542,6 +548,7 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		break;
 
 	case SND_SOC_DAIFMT_NB_NF:
+		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: normal bit clock, normal frame clock \n"); //CS
 		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXPOL);
 		mcasp_clr_bits(base + DAVINCI_MCASP_TXFMCTL_REG, FSXPOL);
 
@@ -563,6 +570,7 @@ static int davinci_config_channel_size(struct davinci_audio_dev *dev,
 	u32 mask, rotate;
 
 	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_config_channel_size\n"); //CS
+	printk(KERN_DEBUG "Channel size: %d\n",channel_size); //CS
 
 	switch (channel_size) {
 	case DAVINCI_AUDIO_WORD_8:

@@ -37,9 +37,13 @@
 		SND_SOC_DAIFMT_CBM_CFM | SND_SOC_DAIFMT_IB_NF)
 */
 
+/*
 #define AUDIO_FORMAT (SND_SOC_DAIFMT_DSP_A | \
 		SND_SOC_DAIFMT_IB_IF | SND_SOC_DAIFMT_CBM_CFM)
+*/
 
+#define AUDIO_FORMAT (SND_SOC_DAIFMT_I2S | \
+		SND_SOC_DAIFMT_NB_IF | SND_SOC_DAIFMT_CBM_CFM)
 
 static int evm_hw_params(struct snd_pcm_substream *substream,
 			 struct snd_pcm_hw_params *params)
