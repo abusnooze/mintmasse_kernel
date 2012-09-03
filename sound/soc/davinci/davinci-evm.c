@@ -42,8 +42,13 @@
 		SND_SOC_DAIFMT_IB_IF | SND_SOC_DAIFMT_CBM_CFM)
 */
 
+/*
 #define AUDIO_FORMAT (SND_SOC_DAIFMT_I2S | \
 		SND_SOC_DAIFMT_NB_IF | SND_SOC_DAIFMT_CBM_CFM)
+*/
+
+#define AUDIO_FORMAT (SND_SOC_DAIFMT_I2S | \
+		SND_SOC_DAIFMT_NB_IF | SND_SOC_DAIFMT_CBS_CFS)
 
 static int evm_hw_params(struct snd_pcm_substream *substream,
 			 struct snd_pcm_hw_params *params)
@@ -372,6 +377,10 @@ static int __init evm_init(void)
 		index = 1;
 	} else if (machine_is_davinci_da850_evm()) {
 		evm_snd_dev_data = &da850_snd_soc_card;
+		index = 0;
+	} else if (machine_is_am335xiaevm()) { //JJH //CS just copied it from 6_virginMcASP, but not need it I guess
+		printk(KERN_INFO "Detected machine: !!!!NEW, BEWARE!!! am335iaxevm -> evm_snd_dev_data = &am335x_snd_soc_card"); //CS
+		evm_snd_dev_data = &am335x_snd_soc_card;
 		index = 0;
 	} else if (machine_is_am335xevm()) {
 		evm_snd_dev_data = &am335x_snd_soc_card;

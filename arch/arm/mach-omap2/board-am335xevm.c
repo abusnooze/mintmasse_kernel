@@ -194,7 +194,7 @@ static struct snd_platform_data am335x_evm_snd_data0 = {
 	.rx_dma_offset	= 0x46000000,
 	.op_mode	= DAVINCI_MCASP_IIS_MODE,
 	.num_serializer	= ARRAY_SIZE(am335x_iis_serializer_direction0),
-	.tdm_slots	= 2,
+	.tdm_slots	= 4,
 	.serial_dir	= am335x_iis_serializer_direction0,
 	.asp_chan_q	= EVENTQ_2,
 	.version	= MCASP_VERSION_3,
@@ -617,18 +617,24 @@ static struct pinmux_config mcasp1_pin_mux[] = {
 //[1]: alternative?: mcasp0_aclkr_mux3 -> P9.12 mode 6 (proc: U18, mode0name = gpmc_be1n)
 //[2]: alternative?: P9.27 mode 0 (proc: C13, mode0name = mcasp0_fsr)
 static struct pinmux_config mcasp0_pin_mux[] = {
-         {"lcd_data8.mcasp0_aclkx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN},
-         {"lcd_data9.mcasp0_fsx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN},
+         //{"lcd_data8.mcasp0_aclkx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN}, 
+	 {"lcd_data8.mcasp0_aclkx", OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT_PULLUP}, //CS: try: set as output
+         //{"lcd_data9.mcasp0_fsx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN},
+	 {"lcd_data9.mcasp0_fsx", OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT_PULLUP}, //CS: try: set as output
+	 {"lcd_data11.mcasp0_ahclkr", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN}, //CS NEW!
          {"lcd_data12.mcasp0_axr2", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN},
-         {"lcd_data13.mcasp0_axr3", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN},
+         {"lcd_data13.mcasp0_axr3", OMAP_MUX_MODE4 | AM33XX_PIN_INPUT_PULLDOWN}, 
+	 {"lcd_data15.mcasp0_ahclkx", OMAP_MUX_MODE3 | AM33XX_PIN_INPUT_PULLDOWN}, //CS NEW!
 	 //{"lcd_data12.mcasp0_aclkr" , OMAP_MUX_MODE3 | ?}, //[1]
 	 //{"gpmc_be1n.mcasp0_aclkr_mux3", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS, 
 			//==> _omap_mux_get_by_name: Could not find signal gpmc_be1n.mcasp0_aclkr_mux3 AND 
 			    //board_am335xevm.c->setup_pin_mux: failed to get muxmode for signalname gpmc_be1n.mcasp0_aclkr_mux3
 	 //{"gpmc_be1n.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: try this...also thinkable: gpmc_ben1...
-	 {"gpmc_ben1.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: now try this
+	 //{"gpmc_ben1.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: now try this
+	 {"gpmc_ben1.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT_PULLUP}, //CS: now try this, try: set as output
 	 //{"lcd_data13.mcasp0_fsr", OMAP_MUX_MODE3 | ?}, //[2]
-	 {"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_INPUT_PULLDOWN}, //CS //only conflicting with profibus
+	 //{"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_INPUT_PULLDOWN}, //CS //only conflicting with profibus
+	 {"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT_PULLUP}, //CS //only conflicting with profibus, try: set as output
          {NULL, 0},
 }; 
 

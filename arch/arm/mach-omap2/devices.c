@@ -964,6 +964,7 @@ static inline void omap_init_vout(void) {}
 static const s16 am33xx_dma_rsv_chans[][2] = {
 	/* (offset, number) */
 	{0, 2},
+	{8, 2}, //CS: (not sure if this is doing any good!!!) Added McASP channels 8 and 9 [from: http://e2e.ti.com/support/dsp/sitara_arm174_microprocessors/f/791/t/193860.aspx ]
 	{14, 2},
 	{26, 6},
 	{48, 4},
@@ -1111,6 +1112,8 @@ static int __init am33xx_register_edma(void)
 	struct edma_soc_info *pdata = am33xx_edma_info;
 	char oh_name[8];
 
+	printk(KERN_DEBUG "Entering: devices.c->am33xx_register_edma"); //CS	
+
 	if (!cpu_is_am33xx())
 		return -ENODEV;
 
@@ -1134,6 +1137,8 @@ static int __init am33xx_register_edma(void)
 								NULL, 0, 0);
 
 	WARN(IS_ERR(pdev), "could not build omap_device for edma\n");
+
+	printk(KERN_DEBUG "Exit: devices.c->am33xx_register_edma"); //CS
 
 	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
 
@@ -1227,6 +1232,8 @@ static int __init omap2_init_devices(void)
 	 * please keep these calls, and their implementations above,
 	 * in alphabetical order so they're easier to sort through.
 	 */
+	printk(KERN_DEBUG "Entering devices.c->omap2_init_devices"); //CS
+
 	omap_init_audio();
 	omap_init_mcpdm();
 	omap_init_dmic();
