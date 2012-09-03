@@ -354,6 +354,8 @@ static void mcasp_start_rx(struct davinci_audio_dev *dev)
 
 	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLR_REG, RXSMRST);
 	mcasp_set_ctl_reg(dev->base + DAVINCI_MCASP_GBLCTLR_REG, RXFSRST);
+
+	printk(KERN_DEBUG "Exit davinci-mcasp.c->mcasp_start_rx\n"); //CS
 }
 
 static void mcasp_start_tx(struct davinci_audio_dev *dev)
@@ -408,20 +410,27 @@ static void davinci_mcasp_start(struct davinci_audio_dev *dev, int stream)
 		mcasp_start_tx(dev);
 	} else {
 		if (dev->rxnumevt) {	/* flush and enable FIFO */
+			printk(KERN_DEBUG "davinci-mcasp.c->mcasp_start: dev->rxnumevt != NULL -> flush and enable FIFO\n"); //CS
 			if (dev->version == MCASP_VERSION_3) {
+				printk(KERN_DEBUG "davinci-mcasp.c->mcasp_start: stream != SNDRV_PCM_STREAM_PLAYBACK and version = MCASP_VERSION3\n"); //CS
 				mcasp_clr_bits(dev->base + MCASP_VER3_WFIFOCTL,
 								FIFO_ENABLE);
 				mcasp_set_bits(dev->base + MCASP_VER3_WFIFOCTL,
 								FIFO_ENABLE);
 			} else {
+				printk(KERN_DEBUG "davinci-mcasp.c->mcasp_start: stream != SNDRV_PCM_STREAM_PLAYBACK and version != MCASP_VERSION3\n"); //CS
 				mcasp_clr_bits(dev->base + DAVINCI_MCASP_RFIFOCTL,
 								FIFO_ENABLE);
 				mcasp_set_bits(dev->base + DAVINCI_MCASP_RFIFOCTL,
 								FIFO_ENABLE);
 			}
 		}
+		printk(KERN_DEBUG "davinci-mcasp.c->mcasp_start: calling mcasp_start_rx\n"); //CS
 		mcasp_start_rx(dev);
 	}
+
+	printk(KERN_DEBUG "Exit davinci-mcasp.c->mcasp_start\n"); //CS
+
 }
 
 static void mcasp_stop_rx(struct davinci_audio_dev *dev)
@@ -480,13 +489,15 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 		/* codec is clock and frame slave */
 		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: codec is clock and frame slave \n"); //CS 
 		mcasp_set_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
-		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
-
-		mcasp_set_bits(base + DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
-		mcasp_set_bits(base + DAVINCI_MCASP_RXFMCTL_REG, AFSRE);
+		mcasp_set_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);		
+		mcasp_set_bits(base + DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE); //internal receive clock source from 
+									   //output of programmable bit clock devider (only if ACLKXCTL_REG.TX_ASYNC = 1)
+		mcasp_set_bits(base + DAVINCI_MCASP_RXFMCTL_REG, AFSRE); //Receive frame sync generation: internally generated
 
 		mcasp_set_bits(base + DAVINCI_MCASP_PDIR_REG,
-				ACLKX | AHCLKX | AFSX);
+				ACLKX | AHCLKX | AFSX); //set ACLKX, AHCLKX and AFSX as outputs. Why not receive clocks too?
+
+		mcasp_set_bits(base +  DAVINCI_MCASP_PDIR_REG, ACLKR | AFSR); //CS: added for testing (set ACLKR and AFSR as outputs)
 		break;
 	case SND_SOC_DAIFMT_CBM_CFS:
 		/* codec is clock master and frame slave */
@@ -719,9 +730,13 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
 	for (i = 0; i < active_slots; i++)
 		mask |= (1 << i);
 
-	mcasp_clr_bits(dev->base + DAVINCI_MCASP_ACLKXCTL_REG, TX_ASYNC);
+	//mcasp_clr_bits(dev->base + DAVINCI_MCASP_ACLKXCTL_REG, TX_ASYNC);
+	mcasp_set_bits(dev->base + DAVINCI_MCASP_ACLKXCTL_REG, TX_ASYNC); //CS: if this bit (ACLKXCTL_REG.ASYNC) is 0, rx and tx clock generators are coupled!
+
+	printk(KERN_DEBUG "davinci_hw_param: tdm_slots = %d\n", dev->tdm_slots); //CS
 
 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+		printk(KERN_DEBUG "davinci_hw_param: stream = SNDRV_PCM_STREAM_PLAYBACK"); //CS
 		/* bit stream is MSB first  with no delay */
 		/* DSP_B mode */
 		mcasp_set_bits(dev->base + DAVINCI_MCASP_AHCLKXCTL_REG,
@@ -738,11 +753,12 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
 
 		mcasp_clr_bits(dev->base + DAVINCI_MCASP_TXFMCTL_REG, FSXDUR);
 	} else {
+		printk(KERN_DEBUG "davinci_hw_param: stream != SNDRV_PCM_STREAM_PLAYBACK"); //CS
 		/* bit stream is MSB first with no delay */
 		/* DSP_B mode */
-		mcasp_set_bits(dev->base + DAVINCI_MCASP_RXFMT_REG, RXORD);
-		mcasp_set_bits(dev->base + DAVINCI_MCASP_AHCLKRCTL_REG,
-				AHCLKRE);
+		mcasp_set_bits(dev->base + DAVINCI_MCASP_RXFMT_REG, RXORD); //Bitstream is MSB first
+		//mcasp_set_bits(dev->base + DAVINCI_MCASP_AHCLKRCTL_REG, AHCLKRE); 
+		mcasp_clr_bits(dev->base + DAVINCI_MCASP_AHCLKRCTL_REG, AHCLKRE); //CS: External receive high-frequency clock source from AHCLKR pin.
 		mcasp_set_reg(dev->base + DAVINCI_MCASP_RXTDM_REG, mask);
 
 		if ((dev->tdm_slots >= 2) && (dev->tdm_slots <= 32))
@@ -752,7 +768,7 @@ static void davinci_hw_param(struct davinci_audio_dev *dev, int stream)
 			printk(KERN_ERR "capture tdm slot %d not supported\n",
 				dev->tdm_slots);
 
-		mcasp_clr_bits(dev->base + DAVINCI_MCASP_RXFMCTL_REG, FSRDUR);
+		mcasp_clr_bits(dev->base + DAVINCI_MCASP_RXFMCTL_REG, FSRDUR); //receive frame sync width: single bit
 	}
 }
 
@@ -862,7 +878,9 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
 	case SNDRV_PCM_TRIGGER_RESUME:
 	case SNDRV_PCM_TRIGGER_START:
 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_trigger: cmd=SNDRV_PCM_TRIGGER_RESUME or _START or _RELEASE\n"); //CS
 		if (!dev->clk_active) {
+			printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_trigger: dev->clk_active=0 -> set clk active\n"); //CS
 			clk_enable(dev->clk);
 			dev->clk_active = 1;
 		}
@@ -870,8 +888,10 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
 		break;
 
 	case SNDRV_PCM_TRIGGER_SUSPEND:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_trigger: cmd=SNDRV_PCM_TRIGGER_SUSPEND\n"); //CS
 		davinci_mcasp_stop(dev, substream->stream);
 		if (dev->clk_active) {
+			printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_trigger: dev->clk_active != 0 -> set clk inactive\n"); //CS
 			clk_disable(dev->clk);
 			dev->clk_active = 0;
 		}
@@ -880,13 +900,16 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
 
 	case SNDRV_PCM_TRIGGER_STOP:
 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_trigger: cmd=SNDRV_PCM_TRIGGER_STOP or _PAUSE_PUSH\n"); //CS
 		davinci_mcasp_stop(dev, substream->stream);
 		break;
 
 	default:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_trigger: unknown cmd ... return ERROR!\n"); //CS
 		ret = -EINVAL;
 	}
 
+	printk(KERN_DEBUG "Exit davinci-mcasp.c->davinci_mcasp_trigger\n"); //CS
 	return ret;
 }
 
@@ -927,7 +950,7 @@ static struct snd_soc_dai_driver davinci_mcasp_dai[] = {
 		},
 		.capture 	= {
 			.channels_min 	= 2,
-			.channels_max 	= 2,
+			.channels_max 	= 8, //CS changed this from 2 to 8. Hope this is valid.
 			.rates 		= DAVINCI_MCASP_RATES,
 			.formats	= DAVINCI_MCASP_PCM_FMTS,
 		},
@@ -1086,6 +1109,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!mem) {
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: no mem resource?\n"); //CS
 		dev_err(&pdev->dev, "no mem resource?\n");
 		ret = -ENODEV;
 		goto err_release_data;
@@ -1094,6 +1118,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 	ioarea = request_mem_region(mem->start,
 			resource_size(mem), pdev->name);
 	if (!ioarea) {
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: Audio region already claimed\n"); //CS
 		dev_err(&pdev->dev, "Audio region already claimed\n");
 		ret = -EBUSY;
 		goto err_release_data;
@@ -1102,6 +1127,7 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 	pdata = pdev->dev.platform_data;
 	dev->clk = clk_get(&pdev->dev, NULL);
 	if (IS_ERR(dev->clk)) {
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: IS_ERR(dev->clk) = TRUE! -> Error\n"); //CS
 		ret = -ENODEV;
 		goto err_release_region;
 	}
@@ -1111,14 +1137,19 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 
 	dev->base = ioremap(mem->start, resource_size(mem));
 	if (!dev->base) {
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: ioremap failed!\n"); //CS
 		dev_err(&pdev->dev, "ioremap failed\n");
 		ret = -ENOMEM;
 		goto err_release_clk;
 	}
 
-	pr_info("%s: dev: 0x%08X, ioa: 0x%08X, pdata: 0x%08X, base: 0x%08X\n", 
+	printk(KERN_DEBUG "%s: dev: 0x%08X, ioa: 0x%08X, pdata: 0x%08X, base: 0x%08X\n", 
 		__FUNCTION__, (u32) dev, (u32) ioarea ,
-		(u32) pdata , (u32) dev->base ); //JJH
+		(u32) pdata , (u32) dev->base ); //CS
+
+	//pr_info("%s: dev: 0x%08X, ioa: 0x%08X, pdata: 0x%08X, base: 0x%08X\n", 
+	//	__FUNCTION__, (u32) dev, (u32) ioarea ,
+	//	(u32) pdata , (u32) dev->base ); //JJH
 
 	// Set the pin mux values for the McASP
 	//pr_info("%s: ->beaglebone_mcasp_gpio_assign()\n", __FUNCTION__); //JJH
@@ -1134,58 +1165,78 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
 	dev->txnumevt = pdata->txnumevt;
 	dev->rxnumevt = pdata->rxnumevt;
 
+	/*STREAM_PLAYBACK---------------------*/ //CS
 	dma_data = &dev->dma_params[SNDRV_PCM_STREAM_PLAYBACK];
 	dma_data->asp_chan_q = pdata->asp_chan_q;
 	dma_data->ram_chan_q = pdata->ram_chan_q;
 	dma_data->sram_size = pdata->sram_size_playback;
+
+	printk(KERN_DEBUG "davinci-mcasp->davinci_mcasp_probe: pdata->tx_dma_offset = 0x%08X, mem->start = 0x%08X\n", (u32) pdata->tx_dma_offset, (u32) mem->start); //CS
+
 	if (dev->version == MCASP_VERSION_3)
 		dma_data->dma_addr = (dma_addr_t) (pdata->tx_dma_offset);
 	else
 		dma_data->dma_addr = (dma_addr_t) (pdata->tx_dma_offset +
 							mem->start);
 
+	printk(KERN_DEBUG "davinci-mcasp->davinci_mcasp_probe: (playback) dma_data->dma_addr = 0x%08X\n", (u32) dma_data->dma_addr); //CS
+
 	/* first TX, then RX */
 	res = platform_get_resource(pdev, IORESOURCE_DMA, 0);
 	if (!res) {
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: no DMA resource 0!!\n"); //CS
 		dev_err(&pdev->dev, "no DMA resource\n");
 		ret = -ENODEV;
 		goto err_iounmap;
 	}
 
-	dma_data->channel = res->start;
+	dma_data->channel = res->start;	
+	/*--------------------------------------*/ //CS
 
+	/*STREAM_CAPTURE---------------------*/ //CS
 	dma_data = &dev->dma_params[SNDRV_PCM_STREAM_CAPTURE];
 	dma_data->asp_chan_q = pdata->asp_chan_q;
 	dma_data->ram_chan_q = pdata->ram_chan_q;
 	dma_data->sram_size = pdata->sram_size_capture;
+
+	printk(KERN_DEBUG "davinci-mcasp->davinci_mcasp_probe: pdata->rx_dma_offset = 0x%08X, mem->start = 0x%08X\n", (u32) pdata->rx_dma_offset, (u32) mem->start); //CS
+
 	if (dev->version == MCASP_VERSION_3)
 		dma_data->dma_addr = (dma_addr_t) (pdata->rx_dma_offset);
 	else
 		dma_data->dma_addr = (dma_addr_t)(pdata->rx_dma_offset +
 							mem->start);
 
+	printk(KERN_DEBUG "davinci-mcasp->davinci_mcasp_probe: (capture) dma_data->dma_addr = 0x%08X\n", (u32) dma_data->dma_addr); //CS
+
 	res = platform_get_resource(pdev, IORESOURCE_DMA, 1);
 	if (!res) {
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: no DMA resource 1!!\n"); //CS
 		dev_err(&pdev->dev, "no DMA resource\n");
 		ret = -ENODEV;
 		goto err_iounmap;
 	}
 
 	dma_data->channel = res->start;
+	/*--------------------------------------*/ //CS
+
 	dev_set_drvdata(&pdev->dev, dev);
 
-	pr_info("%s: TX & RX DMA init completed...\n", __FUNCTION__); //JJH
+	printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: TX & RX DMA init completed\n"); //CS
+	//pr_info("%s: TX & RX DMA init completed...\n", __FUNCTION__); //JJH
 
 	ret = snd_soc_register_dai(&pdev->dev, &davinci_mcasp_dai[pdata->op_mode]);
 
 	if (ret != 0) {
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_probe: snd_soc_register_dai() failed: ret: %d\n",ret); //CS
 		dev_err(&pdev->dev, "%s: snd_soc_register_dai() failed: ret: %d\n",
 			__FUNCTION__ , ret);
 		goto err_iounmap;
 	}
 
-	printk("%s: Exit: plat dev: 0x%08X: ret: 0\n",
-	      __FUNCTION__, (u32) pdev); //JJH
+	printk("Exit davinci-mcasp.c->davinci_mcasp_probe: plat dev: 0x%08X: ret: 0\n", (u32) pdev); //JJH
+	//printk("%s: Exit: plat dev: 0x%08X: ret: 0\n",
+	//      __FUNCTION__, (u32) pdev); //JJH
 
 	return 0;
 
@@ -1198,7 +1249,7 @@ err_release_region:
 	release_mem_region(mem->start, resource_size(mem));
 err_release_data:
 	kfree(dev);
-
+	printk(KERN_DEBUG "Exit davinci-mcasp.c->davinci_mcasp_probe with error\n"); //CS
 	return ret;
 }
 
