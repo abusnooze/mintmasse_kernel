@@ -1788,6 +1788,8 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 	snd_pcm_uframes_t avail = 0;
 	long wait_time, tout;
 
+	printk(KERN_DEBUG "Entering pcm_lib.c->wait_for_avail\n"); //CS -> remove this (its called in a loop!) 
+
 	init_waitqueue_entry(&wait, current);
 	set_current_state(TASK_INTERRUPTIBLE);
 	add_wait_queue(&runtime->tsleep, &wait);
@@ -1805,6 +1807,7 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 
 	for (;;) {
 		if (signal_pending(current)) {
+			printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: err = -ERESTARTSYS\n"); //CS
 			err = -ERESTARTSYS;
 			break;
 		}
@@ -1824,18 +1827,23 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 			break;
 		snd_pcm_stream_unlock_irq(substream);
 
+		//printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: pre-timeout\n"); //CS
 		tout = schedule_timeout(wait_time);
+		//printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: post-timeout\n"); //CS
 
 		snd_pcm_stream_lock_irq(substream);
 		set_current_state(TASK_INTERRUPTIBLE);
 		switch (runtime->status->state) {
 		case SNDRV_PCM_STATE_SUSPENDED:
+			printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: state=SUSPENDED\n"); //CS
 			err = -ESTRPIPE;
 			goto _endloop;
 		case SNDRV_PCM_STATE_XRUN:
+			printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: state=XRUN\n"); //CS
 			err = -EPIPE;
 			goto _endloop;
 		case SNDRV_PCM_STATE_DRAINING:
+			printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: state=DRAINING\n"); //CS
 			if (is_playback)
 				err = -EPIPE;
 			else 
@@ -1844,10 +1852,12 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 		case SNDRV_PCM_STATE_OPEN:
 		case SNDRV_PCM_STATE_SETUP:
 		case SNDRV_PCM_STATE_DISCONNECTED:
+			printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: state=OPEN or SETUP or DISCONNECTED\n"); //CS
 			err = -EBADFD;
 			goto _endloop;
 		}
 		if (!tout) {
+			printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: tout=0 -> ERROR (DMA or IRQ trouble?)\n"); //CS
 			snd_printd("%s write error (DMA or IRQ trouble?)\n",
 				   is_playback ? "playback" : "capture");
 			err = -EIO;
@@ -1855,9 +1865,11 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 		}
 	}
  _endloop:
+	printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: _endloop\n"); //CS
 	set_current_state(TASK_RUNNING);
 	remove_wait_queue(&runtime->tsleep, &wait);
 	*availp = avail;
+	printk(KERN_DEBUG "Exit pcm_lib.c->wait_for_avail\n"); //CS
 	return err;
 }
 	
@@ -2112,12 +2124,15 @@ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
 	snd_pcm_uframes_t offset = 0;
 	int err = 0;
 
+	printk(KERN_DEBUG "Entering pcm_lib.c->snd_pcm_lib_read1"); //CS
+
 	if (size == 0)
 		return 0;
 
 	snd_pcm_stream_lock_irq(substream);
 	switch (runtime->status->state) {
 	case SNDRV_PCM_STATE_PREPARED:
+		printk(KERN_DEBUG "pcm_lib.c->snd_pcm_lib_read1: runtime->status->state = SNDRV_PCM_STATE_PREPARED"); //CS
 		if (size >= runtime->start_threshold) {
 			err = snd_pcm_start(substream);
 			if (err < 0)
@@ -2129,12 +2144,15 @@ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
 	case SNDRV_PCM_STATE_PAUSED:
 		break;
 	case SNDRV_PCM_STATE_XRUN:
+		printk(KERN_DEBUG "pcm_lib.c->snd_pcm_lib_read1: runtime->status->state = SNDRV_PCM_STATE_XRUN"); //CS
 		err = -EPIPE;
 		goto _end_unlock;
 	case SNDRV_PCM_STATE_SUSPENDED:
+		printk(KERN_DEBUG "pcm_lib.c->snd_pcm_lib_read1: runtime->status->state = SNDRV_PCM_STATE_SUSPENDED"); //CS
 		err = -ESTRPIPE;
 		goto _end_unlock;
 	default:
+		printk(KERN_DEBUG "pcm_lib.c->snd_pcm_lib_read1: runtime->status->state = unknown!"); //CS
 		err = -EBADFD;
 		goto _end_unlock;
 	}
@@ -2160,8 +2178,10 @@ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
 			runtime->twake = min_t(snd_pcm_uframes_t, size,
 					runtime->control->avail_min ? : 1);
 			err = wait_for_avail(substream, &avail);
-			if (err < 0)
+			if (err < 0) {
+				printk(KERN_DEBUG "pcm_lib.c->snd_pcm_lib_read1: wait_for_avail returned wit err<0...goto _end_unlock"); //CS
 				goto _end_unlock;
+			}
 			if (!avail)
 				continue; /* draining */
 		}
@@ -2207,6 +2227,9 @@ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
 	if (xfer > 0 && err >= 0)
 		snd_pcm_update_state(substream, runtime);
 	snd_pcm_stream_unlock_irq(substream);
+
+	printk(KERN_DEBUG "Exit pcm_lib.c->snd_pcm_lib_read1 with err=%d\n", err); //CS
+
 	return xfer > 0 ? (snd_pcm_sframes_t)xfer : err;
 }
 

@@ -162,6 +162,7 @@ static void davinci_pcm_period_elapsed(struct snd_pcm_substream *substream)
 	struct davinci_runtime_data *prtd = substream->runtime->private_data;
 	struct snd_pcm_runtime *runtime = substream->runtime;
 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_period_elapsed: prtd->period=%d, runtime-periods=%d", prtd->period, runtime->periods); //CS
 	prtd->period++;
 	if (unlikely(prtd->period >= runtime->periods))
 		prtd->period = 0;
@@ -198,6 +199,8 @@ static void davinci_pcm_enqueue_dma(struct snd_pcm_substream *substream)
 	dma_pos = runtime->dma_addr + dma_offset;
 	fifo_level = prtd->params->fifo_level;
 
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_enqueue_dma: audio_set_dma_params_play channel = %d dma_ptr = %x period_size=%x\n", prtd->asp_link[0], dma_pos, period_size); //CS 
+
 	pr_debug("davinci_pcm: audio_set_dma_params_play channel = %d "
 		"dma_ptr = %x period_size=%x\n", prtd->asp_link[0], dma_pos,
 		period_size);
@@ -215,6 +218,7 @@ static void davinci_pcm_enqueue_dma(struct snd_pcm_substream *substream)
 		src_cidx = data_type * fifo_level;
 		dst_cidx = 0;
 	} else {
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_enqueue_dma: substream->stream != PLAYBACK\n"); //CS 
 		src = prtd->params->dma_addr;
 		dst = dma_pos;
 		src_bidx = 0;
@@ -237,6 +241,8 @@ static void davinci_pcm_enqueue_dma(struct snd_pcm_substream *substream)
 		edma_set_transfer_params(prtd->asp_link[0], acnt, fifo_level,
 							count, fifo_level,
 							ABSYNC);
+
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_enqueue_dma\n"); //CS 
 }
 
 static void davinci_pcm_dma_irq(unsigned link, u16 ch_status, void *data)
@@ -248,6 +254,7 @@ static void davinci_pcm_dma_irq(unsigned link, u16 ch_status, void *data)
 
 	print_buf_info(prtd->ram_channel, "i ram_channel");
 	pr_debug("davinci_pcm: link=%d, status=0x%x\n", link, ch_status);
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_dma_irq: link=%d, status=0x%x\n",link, ch_status); //CS 
 
 	if (unlikely(ch_status != DMA_COMPLETE))
 		return;
@@ -262,6 +269,7 @@ static void davinci_pcm_dma_irq(unsigned link, u16 ch_status, void *data)
 		spin_unlock(&prtd->lock);
 		snd_pcm_period_elapsed(substream);
 	}
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_dma_irq\n"); //CS 
 }
 
 static int allocate_sram(struct snd_pcm_substream *substream, unsigned size,
@@ -274,8 +282,10 @@ static int allocate_sram(struct snd_pcm_substream *substream, unsigned size,
 
 	printk(KERN_DEBUG "Entering davinci-pcm.c->allocate_sram\n"); //CS 
 
-	if (buf->private_data || !size)
+	if (buf->private_data || !size) {
+		printk(KERN_DEBUG "Exit davinci-pcm.c->allocate_sram: (buf->private_data || !size) == TRUE \n"); //CS
 		return 0;
+	}
 
 	ppcm->period_bytes_max = size;
 	iram_virt = (void *)gen_pool_alloc(davinci_gen_pool, size);
@@ -291,11 +301,15 @@ static int allocate_sram(struct snd_pcm_substream *substream, unsigned size,
 	memset(iram_dma->area, 0, size);
 	iram_dma->bytes = size;
 	buf->private_data = iram_dma;
+	printk(KERN_DEBUG "Exit davinci-pcm.c->allocate_sram: return 0\n"); //CS 
 	return 0;
 exit2:
+	printk(KERN_DEBUG "davinci-pcm.c->allocate_sram: exit2\n"); //CS
 	if (iram_virt)
 		gen_pool_free(davinci_gen_pool, (unsigned long)iram_virt, size);
 exit1:
+	printk(KERN_DEBUG "davinci-pcm.c->allocate_sram: exit1\n"); //CS
+	printk(KERN_DEBUG "Exit davinci-pcm.c->allocate_sram with ERROR = -ENOMEM\n"); //CS
 	return -ENOMEM;
 }
 
@@ -512,7 +526,7 @@ static int davinci_pcm_dma_request(struct snd_pcm_substream *substream)
 	struct davinci_pcm_dma_params *params = prtd->params;
 	int ret;
 
-	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_request\n"); //CS 
+	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_dma_request\n"); //CS 
 
 	if (!params)
 		return -ENODEV;
@@ -532,8 +546,10 @@ static int davinci_pcm_dma_request(struct snd_pcm_substream *substream)
 
 	iram_dma = (struct snd_dma_buffer *)substream->dma_buffer.private_data;
 	if (iram_dma) {
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm__dma_request: iram_dma != 0\n"); //CS 
 		if (request_ping_pong(substream, prtd, iram_dma) == 0)
 			return 0;
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_dma_request: dma channel allocation failed, not using sram\n"); //CS 
 		printk(KERN_WARNING "%s: dma channel allocation failed,"
 				"not using sram\n", __func__);
 	}
@@ -552,11 +568,16 @@ static int davinci_pcm_dma_request(struct snd_pcm_substream *substream)
 		EDMA_TCC(EDMA_CHAN_SLOT(prtd->asp_channel));
 	prtd->asp_params.link_bcntrld = EDMA_CHAN_SLOT(prtd->asp_link[0]) << 5;
 	edma_write_slot(prtd->asp_link[0], &prtd->asp_params);
+
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_dma_request: return 0\n"); //CS 
 	return 0;
 exit2:
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_dma_request: exit2\n"); //CS 
 	edma_free_channel(prtd->asp_channel);
 	prtd->asp_channel = -1;
 exit1:
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_dma_request: exit1\n"); //CS
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_dma_request: return = %d\n", ret); //CS  
 	return ret;
 }
 
@@ -571,28 +592,35 @@ static int davinci_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
+		printk(KERN_DEBUG "davinci_pcm_trigger: cmd=SNDRV_PCM_TRIGGER_START"); //CS 
 		edma_start(prtd->asp_channel);
 		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK &&
 		    prtd->ram_channel >= 0) {
+			printk(KERN_DEBUG "davinci_pcm_trigger: copy 1st iram buffer"); //CS 
 			/* copy 1st iram buffer */
 			edma_start(prtd->ram_channel);
 		}
 		break;
 	case SNDRV_PCM_TRIGGER_RESUME:
 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+		printk(KERN_DEBUG "davinci_pcm_trigger: cmd=SNDRV_PCM_TRIGGER_RESUME or SNDRV_PCM_TRIGGER_PAUSE_RELEASE"); //CS 
 		edma_resume(prtd->asp_channel);
 		break;
 	case SNDRV_PCM_TRIGGER_STOP:
 	case SNDRV_PCM_TRIGGER_SUSPEND:
 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+		printk(KERN_DEBUG "davinci_pcm_trigger: cmd=SNDRV_PCM_TRIGGER_STOP or SNDRV_PCM_TRIGGER_SUSPEND or SNDRV_PCM_TRIGGER_PAUSE_PUSH"); //CS 
 		edma_pause(prtd->asp_channel);
 		break;
 	default:
+		printk(KERN_DEBUG "davinci_pcm_trigger: unknown command...return ERROR!");
 		ret = -EINVAL;
 		break;
 	}
 
 	spin_unlock(&prtd->lock);
+
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_trigger\n"); //CS 
 
 	return ret;
 }
@@ -604,8 +632,11 @@ static int davinci_pcm_prepare(struct snd_pcm_substream *substream)
 	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_prepare\n"); //CS 
 
 	davinci_pcm_period_reset(substream);
-	if (prtd->ram_channel >= 0) {
+	if (prtd->ram_channel >= 0) {	
 		int ret = ping_pong_dma_setup(substream);
+
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_prepare: ping_pong_dma_setup returned with ret = %d\n", ret); //CS 		
+
 		if (ret < 0)
 			return ret;
 
@@ -634,6 +665,8 @@ static int davinci_pcm_prepare(struct snd_pcm_substream *substream)
 		davinci_pcm_period_elapsed(substream);
 		davinci_pcm_period_elapsed(substream);
 
+		printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_prepare withing if-statement\n"); //CS 
+
 		return 0;
 	}
 	davinci_pcm_enqueue_dma(substream);
@@ -645,7 +678,9 @@ static int davinci_pcm_prepare(struct snd_pcm_substream *substream)
 	davinci_pcm_enqueue_dma(substream);
 	davinci_pcm_period_elapsed(substream);
 
-	return 0;
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_prepare outside the if-statement\n"); //CS 
+
+	return 0;	
 }
 
 static snd_pcm_uframes_t
@@ -670,13 +705,21 @@ davinci_pcm_pointer(struct snd_pcm_substream *substream)
 	asp_count = prtd->period - 2;
 	spin_unlock(&prtd->lock);
 
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (1) asp_count = %d\n", asp_count); //CS
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: runtime->periods = %d\n", runtime->periods); //CS
+
 	if (asp_count < 0)
 		asp_count += runtime->periods;
 	asp_count *= period_size;
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (2) asp_count = %d\n", asp_count); //CS
 
-	offset = bytes_to_frames(runtime, asp_count);
+	offset = bytes_to_frames(runtime, asp_count); // -> dmesg reveals: offset = 0 already here...should it be != 0?
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (1) offset = %d\n", offset); //CS
 	if (offset >= runtime->buffer_size)
 		offset = 0;
+
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (2) offset = %d\n", offset); //CS 
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_pointer\n"); //CS 
 
 	return offset;
 }
@@ -728,6 +771,7 @@ static int davinci_pcm_open(struct snd_pcm_substream *substream)
 		kfree(prtd);
 	}
 
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_open: ret = %d\n", ret); //CS
 	return ret;
 }
 
@@ -820,13 +864,18 @@ static int davinci_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream,
 	buf->area = dma_alloc_writecombine(pcm->card->dev, size,
 					   &buf->addr, GFP_KERNEL);
 
+	printk(KERN_DEBUG "davinci_pcm: preallocate_dma_buffer: area=%p, addr=%p, size=%d\n", (void *) buf->area, (void *) buf->addr, size); //CS 
+	
 	pr_debug("davinci_pcm: preallocate_dma_buffer: area=%p, addr=%p, "
 		"size=%d\n", (void *) buf->area, (void *) buf->addr, size);
 
-	if (!buf->area)
+	if (!buf->area) {
+		printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_preallocate_dma_buffer WITH ERROR: -ENOMEM\n"); //CS 
 		return -ENOMEM;
+	}
 
 	buf->bytes = size;
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_preallocate_dma_buffer without error\n"); //CS 
 	return 0;
 }
 
@@ -880,18 +929,23 @@ static int davinci_pcm_new(struct snd_soc_pcm_runtime *rtd)
 		ret = davinci_pcm_preallocate_dma_buffer(pcm,
 			SNDRV_PCM_STREAM_PLAYBACK,
 			pcm_hardware_playback.buffer_bytes_max);
-		if (ret)
+		if (ret) {
+			printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_new with error: ret = %d (playback)\n", ret); //CS 
 			return ret;
+		}
 	}
 
 	if (dai->driver->capture.channels_min) {
 		ret = davinci_pcm_preallocate_dma_buffer(pcm,
 			SNDRV_PCM_STREAM_CAPTURE,
 			pcm_hardware_capture.buffer_bytes_max);
-		if (ret)
+		if (ret) {
+			printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_new with error: ret = %d (capture)\n", ret); //CS 
 			return ret;
+		}
 	}
 
+	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_new without error\n"); //CS 
 	return 0;
 }
 
@@ -904,7 +958,7 @@ static struct snd_soc_platform_driver davinci_soc_platform = {
 static int __devinit davinci_soc_platform_probe(struct platform_device *pdev)
 {
 	printk(KERN_DEBUG "Entering: davinci-pcm.c->davinci_soc_platform_probe..."); //CS
-	printk(KERN_DEBUG "avinci-pcm.c->davinci_soc_platform_probe: calling snd_soc_register_platform"); //CS
+	printk(KERN_DEBUG "davinci-pcm.c->davinci_soc_platform_probe: calling snd_soc_register_platform"); //CS
 	return snd_soc_register_platform(&pdev->dev, &davinci_soc_platform);
 }
 
