@@ -144,23 +144,23 @@ static int ad193x_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
 	switch (slots) {
 	case 2:
 		//dac_reg |= AD193X_DAC_2_CHANNELS << AD193X_DAC_CHAN_SHFT;
-		adc_reg |= AD193X_ADC_2_CHANNELS << AD193X_ADC_CHAN_SHFT;
+		adc_reg |= AD193X_ADC_2_CHANNELS << AD193X_ADC_CHAN_SHFT;  //setting bit clocks per frame to 64
 		tmp = AD193X_ADC_2_CHANNELS << AD193X_ADC_CHAN_SHFT;
 		printk(KERN_DEBUG "tdm slots: 2, ADC_CTRL2 |= %#x\n",tmp); //CS
 		break;
 	case 4:
-		//dac_reg |= AD193X_DAC_4_CHANNELS << AD193X_DAC_CHAN_SHFT;
-		adc_reg |= AD193X_ADC_4_CHANNELS << AD193X_ADC_CHAN_SHFT;
+		//dac_reg |= AD193X_DAC_4_CHANNELS << AD193X_DAC_CHAN_SHFT; 
+		adc_reg |= AD193X_ADC_4_CHANNELS << AD193X_ADC_CHAN_SHFT; //setting bit clocks per frame to 128
 		printk(KERN_DEBUG "tdm slots: 4, ADC_CTRL2 |= %#x\n",tmp); //CS
 		break;
 	case 8:
 		//dac_reg |= AD193X_DAC_8_CHANNELS << AD193X_DAC_CHAN_SHFT;
-		adc_reg |= AD193X_ADC_8_CHANNELS << AD193X_ADC_CHAN_SHFT;
+		adc_reg |= AD193X_ADC_8_CHANNELS << AD193X_ADC_CHAN_SHFT; //setting bit clocks per frame to 256
 		printk(KERN_DEBUG "tdm slots: 8, ADC_CTRL2 |= %#x\n",tmp); //CS
 		break;
 	case 16:
 		//dac_reg |= AD193X_DAC_16_CHANNELS << AD193X_DAC_CHAN_SHFT;
-		adc_reg |= AD193X_ADC_16_CHANNELS << AD193X_ADC_CHAN_SHFT;
+		adc_reg |= AD193X_ADC_16_CHANNELS << AD193X_ADC_CHAN_SHFT; //setting bit clocks per frame to 512
 		printk(KERN_DEBUG "tdm slots: 16, ADC_CTRL2 |= %#x\n",tmp); //CS
 		break;
 	default:
@@ -539,13 +539,13 @@ static int ad193x_probe(struct snd_soc_codec *codec)
 	/*---------------------------------------------*/
 
 	/*Writing default values to registers---------*/
-	snd_soc_write(codec, AD193X_PLL_CLK_CTRL0, 0x80);
+	snd_soc_write(codec, AD193X_PLL_CLK_CTRL0, 0xd8);
 		/*   PLL power-down: normal operation [0 (LSB)]
 		     MCKLI/XI pin functionality (PLL active): INPUT 256 (x44.1 or 48 kHz) [00]
-		   ? MCKLO/XO pin: XTAL oscillator enabled (?) [00]
-		     PLL input: MCLKI/XI [00]
+		   ? MCKLO/XO pin: off (?) [11]
+		     PLL input: ALRCLK [10]
 		     Internal MCLK enable: Enable->ADC active [1] 
-		     ==> 0x80*/
+		     ==> 0xd8*/
 	snd_soc_write(codec, AD193X_PLL_CLK_CTRL1, 0x04);
 		/*   AUXPORT clock source select: PLL clock [0]
 		     ADC clock source select: PLL clock [0]
@@ -585,15 +585,15 @@ static int ad193x_probe(struct snd_soc_codec *codec)
 		   ? Serial format: TDM (daisy chain) [01]
 		     BCLK active edge (TDM_IN): Latch in midcycle (normal) [0]
 		     ==> 0x20*/
-	snd_soc_write(codec, AD193X_ADC_CTRL2, 0xd9);
+	snd_soc_write(codec, AD193X_ADC_CTRL2, 0x15);
 		/* ? LRCLK format: Pulse (32-BCLK/channel) [1]
 		     BCLK polarity: Drive out on falling edge (DEF) [0]
-		     LRCLK polarity: Left low [0]
-		     LRCLK master/slave: master [1]
+		     LRCLK polarity: Left high [1]
+		     LRCLK master/slave: slave [0]
 		   ? BCLKs per frame: 128 [01] 
-		     BCLK master/slave: master [1]
-		   ? BCLK source: internally gernerated [1] 
-		     ==> 0xd9*/
+		     BCLK master/slave: slave [0]
+		   ? BCLK source: ABCLK pin [0] 
+		     ==> 0x15*/
 	/*--------------------------------------------*/	
 	/*Readback register for debugging-------------*/
 	tmp = snd_soc_read(codec, AD193X_PLL_CLK_CTRL0);

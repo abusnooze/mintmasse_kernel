@@ -581,52 +581,60 @@ static int davinci_config_channel_size(struct davinci_audio_dev *dev,
 	u32 mask, rotate;
 
 	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_config_channel_size\n"); //CS
-	printk(KERN_DEBUG "Channel size: %d\n",channel_size); //CS
+	//printk(KERN_DEBUG "Channel size: %d\n",channel_size); //CS
 
 	switch (channel_size) {
 	case DAVINCI_AUDIO_WORD_8:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_config_channel_size: channel size: DAVINCI_AUDIO_WORD_8"); //CS
 		fmt = 0x03;
 		rotate = 6;
 		mask = 0x000000ff;
 		break;
 
 	case DAVINCI_AUDIO_WORD_12:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_config_channel_size: channel size: DAVINCI_AUDIO_WORD_12"); //CS
 		fmt = 0x05;
 		rotate = 5;
 		mask = 0x00000fff;
 		break;
 
 	case DAVINCI_AUDIO_WORD_16:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_config_channel_size: channel size: DAVINCI_AUDIO_WORD_16"); //CS
 		fmt = 0x07;
 		rotate = 4;
 		mask = 0x0000ffff;
 		break;
 
 	case DAVINCI_AUDIO_WORD_20:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_config_channel_size: channel size: DAVINCI_AUDIO_WORD_20"); //CS
 		fmt = 0x09;
 		rotate = 3;
 		mask = 0x000fffff;
 		break;
 
 	case DAVINCI_AUDIO_WORD_24:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_config_channel_size: channel size: DAVINCI_AUDIO_WORD_24"); //CS
 		fmt = 0x0B;
 		rotate = 2;
 		mask = 0x00ffffff;
 		break;
 
 	case DAVINCI_AUDIO_WORD_28:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_config_channel_size: channel size: DAVINCI_AUDIO_WORD_28"); //CS
 		fmt = 0x0D;
 		rotate = 1;
 		mask = 0x0fffffff;
 		break;
 
 	case DAVINCI_AUDIO_WORD_32:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_config_channel_size: channel size: DAVINCI_AUDIO_WORD_32"); //CS
 		fmt = 0x0F;
 		rotate = 0;
 		mask = 0xffffffff;
 		break;
 
 	default:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_config_channel_size: ERROR: unknwon channel size"); //CS
 		return -EINVAL;
 	}
 
@@ -834,23 +842,27 @@ static int davinci_mcasp_hw_params(struct snd_pcm_substream *substream,
 	switch (params_format(params)) {
 	case SNDRV_PCM_FORMAT_U8:
 	case SNDRV_PCM_FORMAT_S8:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_hw_params: U8/S8 -> dma_params->data_type = 1, word_length = DAVINCI_AUDIO_WORD_8"); //CS
 		dma_params->data_type = 1;
 		word_length = DAVINCI_AUDIO_WORD_8;
 		break;
 
 	case SNDRV_PCM_FORMAT_U16_LE:
 	case SNDRV_PCM_FORMAT_S16_LE:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_hw_params: U16/S16 -> dma_params->data_type = 2, word_length = DAVINCI_AUDIO_WORD_16"); //CS
 		dma_params->data_type = 2;
 		word_length = DAVINCI_AUDIO_WORD_16;
 		break;
 
 	case SNDRV_PCM_FORMAT_U32_LE:
 	case SNDRV_PCM_FORMAT_S32_LE:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_hw_params: U32/S32 -> dma_params->data_type = 4, word_length = DAVINCI_AUDIO_WORD_32"); //CS
 		dma_params->data_type = 4;
 		word_length = DAVINCI_AUDIO_WORD_32;
 		break;
 
 	default:
+		printk(KERN_DEBUG "davinci-mcasp.c->davinci_mcasp_hw_params: ERROR: unsupported PCM format!"); //CS
 		printk(KERN_WARNING "davinci-mcasp: unsupported PCM format");
 		return -EINVAL;
 	}

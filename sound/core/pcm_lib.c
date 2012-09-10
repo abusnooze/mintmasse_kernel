@@ -1788,7 +1788,7 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 	snd_pcm_uframes_t avail = 0;
 	long wait_time, tout;
 
-	printk(KERN_DEBUG "Entering pcm_lib.c->wait_for_avail\n"); //CS -> remove this (its called in a loop!) 
+	//printk(KERN_DEBUG "Entering pcm_lib.c->wait_for_avail\n"); //CS -> remove this (its called in a loop!) 
 
 	init_waitqueue_entry(&wait, current);
 	set_current_state(TASK_INTERRUPTIBLE);
@@ -1865,11 +1865,11 @@ static int wait_for_avail(struct snd_pcm_substream *substream,
 		}
 	}
  _endloop:
-	printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: _endloop\n"); //CS
+	//printk(KERN_DEBUG "pcm_lib.c->wait_for_avail: _endloop\n"); //CS
 	set_current_state(TASK_RUNNING);
 	remove_wait_queue(&runtime->tsleep, &wait);
 	*availp = avail;
-	printk(KERN_DEBUG "Exit pcm_lib.c->wait_for_avail\n"); //CS
+	//printk(KERN_DEBUG "Exit pcm_lib.c->wait_for_avail\n"); //CS
 	return err;
 }
 	
@@ -2124,7 +2124,7 @@ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
 	snd_pcm_uframes_t offset = 0;
 	int err = 0;
 
-	printk(KERN_DEBUG "Entering pcm_lib.c->snd_pcm_lib_read1"); //CS
+	//printk(KERN_DEBUG "Entering pcm_lib.c->snd_pcm_lib_read1"); //CS
 
 	if (size == 0)
 		return 0;
@@ -2228,7 +2228,7 @@ static snd_pcm_sframes_t snd_pcm_lib_read1(struct snd_pcm_substream *substream,
 		snd_pcm_update_state(substream, runtime);
 	snd_pcm_stream_unlock_irq(substream);
 
-	printk(KERN_DEBUG "Exit pcm_lib.c->snd_pcm_lib_read1 with err=%d\n", err); //CS
+	//printk(KERN_DEBUG "Exit pcm_lib.c->snd_pcm_lib_read1 with err=%d\n", err); //CS
 
 	return xfer > 0 ? (snd_pcm_sframes_t)xfer : err;
 }

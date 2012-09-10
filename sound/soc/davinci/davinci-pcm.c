@@ -28,6 +28,8 @@
 
 #include "davinci-pcm.h"
 
+ //#define VINCIPRINTK	1 //only define if you want loads of msgs
+
 #ifdef DEBUG
 static void print_buf_info(int slot, char *name)
 {
@@ -162,7 +164,9 @@ static void davinci_pcm_period_elapsed(struct snd_pcm_substream *substream)
 	struct davinci_runtime_data *prtd = substream->runtime->private_data;
 	struct snd_pcm_runtime *runtime = substream->runtime;
 
-	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_period_elapsed: prtd->period=%d, runtime-periods=%d", prtd->period, runtime->periods); //CS
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_period_elapsed: prtd->period=%d, runtime-periods=%d", prtd->period, runtime->periods); //CS
+	#endif
 	prtd->period++;
 	if (unlikely(prtd->period >= runtime->periods))
 		prtd->period = 0;
@@ -192,14 +196,18 @@ static void davinci_pcm_enqueue_dma(struct snd_pcm_substream *substream)
 	unsigned int count;
 	unsigned int fifo_level;
 
-	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_enqueue_dma\n"); //CS 
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_enqueue_dma\n"); //CS 
+	#endif
 
 	period_size = snd_pcm_lib_period_bytes(substream);
 	dma_offset = prtd->period * period_size;
 	dma_pos = runtime->dma_addr + dma_offset;
 	fifo_level = prtd->params->fifo_level;
 
-	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_enqueue_dma: audio_set_dma_params_play channel = %d dma_ptr = %x period_size=%x\n", prtd->asp_link[0], dma_pos, period_size); //CS 
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_enqueue_dma: audio_set_dma_params_play channel = %d dma_ptr = %x period_size=%x\n", prtd->asp_link[0], dma_pos, period_size); //CS 
+	#endif
 
 	pr_debug("davinci_pcm: audio_set_dma_params_play channel = %d "
 		"dma_ptr = %x period_size=%x\n", prtd->asp_link[0], dma_pos,
@@ -218,7 +226,9 @@ static void davinci_pcm_enqueue_dma(struct snd_pcm_substream *substream)
 		src_cidx = data_type * fifo_level;
 		dst_cidx = 0;
 	} else {
-		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_enqueue_dma: substream->stream != PLAYBACK\n"); //CS 
+		#ifdef VINCIPRINTK
+			printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_enqueue_dma: substream->stream != PLAYBACK\n"); //CS 
+		#endif
 		src = prtd->params->dma_addr;
 		dst = dma_pos;
 		src_bidx = 0;
@@ -242,7 +252,9 @@ static void davinci_pcm_enqueue_dma(struct snd_pcm_substream *substream)
 							count, fifo_level,
 							ABSYNC);
 
-	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_enqueue_dma\n"); //CS 
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_enqueue_dma\n"); //CS 
+	#endif
 }
 
 static void davinci_pcm_dma_irq(unsigned link, u16 ch_status, void *data)
@@ -250,11 +262,13 @@ static void davinci_pcm_dma_irq(unsigned link, u16 ch_status, void *data)
 	struct snd_pcm_substream *substream = data;
 	struct davinci_runtime_data *prtd = substream->runtime->private_data;
 
-	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_dma_irq\n"); //CS 
-
+	#ifdef VINCIPRINTK		
+		printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_dma_irq\n"); //CS 
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_dma_irq: link=%d, status=0x%x\n",link, ch_status); //CS 
+	#endif
 	print_buf_info(prtd->ram_channel, "i ram_channel");
 	pr_debug("davinci_pcm: link=%d, status=0x%x\n", link, ch_status);
-	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_dma_irq: link=%d, status=0x%x\n",link, ch_status); //CS 
+	
 
 	if (unlikely(ch_status != DMA_COMPLETE))
 		return;
@@ -269,7 +283,9 @@ static void davinci_pcm_dma_irq(unsigned link, u16 ch_status, void *data)
 		spin_unlock(&prtd->lock);
 		snd_pcm_period_elapsed(substream);
 	}
-	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_dma_irq\n"); //CS 
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_dma_irq\n"); //CS 
+	#endif
 }
 
 static int allocate_sram(struct snd_pcm_substream *substream, unsigned size,
@@ -692,7 +708,9 @@ davinci_pcm_pointer(struct snd_pcm_substream *substream)
 	int asp_count;
 	unsigned int period_size = snd_pcm_lib_period_bytes(substream);
 
-	printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_pointer\n"); //CS 
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "Entering davinci-pcm.c->davinci_pcm_pointer\n"); //CS 
+	#endif
 
 	/*
 	 * There is a phase offset of 2 periods between the position used by dma
@@ -705,21 +723,29 @@ davinci_pcm_pointer(struct snd_pcm_substream *substream)
 	asp_count = prtd->period - 2;
 	spin_unlock(&prtd->lock);
 
-	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (1) asp_count = %d\n", asp_count); //CS
-	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: runtime->periods = %d\n", runtime->periods); //CS
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (1) asp_count = %d\n", asp_count); //CS
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: runtime->periods = %d\n", runtime->periods); //CS
+	#endif
 
 	if (asp_count < 0)
 		asp_count += runtime->periods;
 	asp_count *= period_size;
-	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (2) asp_count = %d\n", asp_count); //CS
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (2) asp_count = %d\n", asp_count); //CS
+	#endif
 
 	offset = bytes_to_frames(runtime, asp_count); // -> dmesg reveals: offset = 0 already here...should it be != 0?
-	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (1) offset = %d\n", offset); //CS
+	#ifdef VINCIPRINTK	
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (1) offset = %d\n", offset); //CS
+	#endif
 	if (offset >= runtime->buffer_size)
 		offset = 0;
 
-	printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (2) offset = %d\n", offset); //CS 
-	printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_pointer\n"); //CS 
+	#ifdef VINCIPRINTK
+		printk(KERN_DEBUG "davinci-pcm.c->davinci_pcm_pointer: (2) offset = %d\n", offset); //CS 
+		printk(KERN_DEBUG "Exit davinci-pcm.c->davinci_pcm_pointer\n"); //CS 
+	#endif
 
 	return offset;
 }
