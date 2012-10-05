@@ -516,14 +516,15 @@ static int davinci_mcasp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 	case SND_SOC_DAIFMT_CBM_CFM:
 		/* codec is clock and frame master */
 		printk(KERN_DEBUG "davinci_mcasp_set_dai_fmt: codec is clock and frame master \n"); //CS
-		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE);
-		mcasp_clr_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE);
+		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKXCTL_REG, ACLKXE); //transmit bit clock source: external transmit clock source from ACLKX pin
+		mcasp_clr_bits(base + DAVINCI_MCASP_TXFMCTL_REG, AFSXE); //transmit frame clock generation: externally-generated transmit frame sync 
 
-		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE);
-		mcasp_clr_bits(base + DAVINCI_MCASP_RXFMCTL_REG, AFSRE);
+		mcasp_clr_bits(base + DAVINCI_MCASP_ACLKRCTL_REG, ACLKRE); //receive bit clock source bit: external receive clock source from ACLKR pin 
+									   // !!!: above does only have effect, if ACLKXCTL_REG.TX_ASYNC = 1
+		mcasp_clr_bits(base + DAVINCI_MCASP_RXFMCTL_REG, AFSRE); //receive frame sync generation: externally generated receive frame sync
 
 		mcasp_clr_bits(base + DAVINCI_MCASP_PDIR_REG,
-				ACLKX | AHCLKX | AFSX | ACLKR | AHCLKR | AFSR);
+				ACLKX | AHCLKX | AFSX | ACLKR | AHCLKR | AFSR); //set all clk pins as inputs
 		break;
 
 	default:

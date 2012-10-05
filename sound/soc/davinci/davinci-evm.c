@@ -47,8 +47,13 @@
 		SND_SOC_DAIFMT_NB_IF | SND_SOC_DAIFMT_CBM_CFM)
 */
 
+/*
 #define AUDIO_FORMAT (SND_SOC_DAIFMT_I2S | \
 		SND_SOC_DAIFMT_NB_IF | SND_SOC_DAIFMT_CBS_CFS)
+*/
+
+#define AUDIO_FORMAT (SND_SOC_DAIFMT_I2S | \
+		SND_SOC_DAIFMT_NB_IF | SND_SOC_DAIFMT_CBM_CFM)
 
 static int evm_hw_params(struct snd_pcm_substream *substream,
 			 struct snd_pcm_hw_params *params)
@@ -303,6 +308,24 @@ static struct snd_soc_dai_link am335x_evm_dai = { //CS: used this struct instead
 };
 
 
+// CS: added struct (from sound/soc/samsung/neo1973_wm8753.c)
+static struct snd_soc_aux_dev am335x_aux_devs[] = {
+	{
+		.name = "that5173",
+		.codec_name = "spi2.1", //CS: use chipselect 1 on the same spi bus
+		//.init = am335x_that5173_init, //CS: do I need an init function?
+	},
+};
+
+// CS: added struct (from sound/soc/samsung/neo1973_wm8753.c)
+static struct snd_soc_codec_conf am335x_codec_conf[] = {
+	{
+		.dev_name = "spi2.1",
+		.name_prefix = "Amp",
+	},
+};
+
+
 /* davinci dm6446 evm audio machine driver */
 static struct snd_soc_card dm6446_snd_soc_card_evm = {
 	.name = "DaVinci DM6446 EVM",
@@ -347,7 +370,13 @@ static struct snd_soc_card am335x_snd_soc_card = {
 	.name = "AM335X EVM",
 	.dai_link = &am335x_evm_dai,
 	.num_links = 1,
+	//.aux_dev = am335x_aux_devs, //CS: from sound/soc/samsung/neo1973_wm8753.c
+	//.num_aux_devs = ARRAY_SIZE(am335x_aux_devs), //CS
+	//.codec_conf = am335x_codec_conf, //CS
+	//.num_configs = ARRAY_SIZE(am335x_codec_conf), //CS
 };
+
+
 
 static struct platform_device *evm_snd_device;
 
