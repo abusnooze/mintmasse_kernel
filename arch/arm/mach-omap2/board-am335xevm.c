@@ -631,10 +631,12 @@ static struct pinmux_config mcasp0_pin_mux[] = {
 			    //board_am335xevm.c->setup_pin_mux: failed to get muxmode for signalname gpmc_be1n.mcasp0_aclkr_mux3
 	 //{"gpmc_be1n.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: try this...also thinkable: gpmc_ben1...
 	 //{"gpmc_ben1.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: now try this
-	 {"gpmc_ben1.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT_PULLUP}, //CS: now try this, try: set as output
+	 //{"gpmc_ben1.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT_PULLUP}, //CS: now try this, try: set as output
+	 {"gpmc_ben1.mcasp0_aclkr", OMAP_MUX_MODE6 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: try input again (I want bb to be mcasp slave)
 	 //{"lcd_data13.mcasp0_fsr", OMAP_MUX_MODE3 | ?}, //[2]
 	 //{"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_INPUT_PULLDOWN}, //CS //only conflicting with profibus
-	 {"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT_PULLUP}, //CS //only conflicting with profibus, try: set as output
+	 //{"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT_PULLUP}, //CS //only conflicting with profibus, try: set as output
+	 {"mcasp0_fsr.mcasp0_fsr", OMAP_MUX_MODE0 | AM33XX_PIN_INPUT_PULLDOWN}, //CS: try input again (I want bb to be mcasp slave)
          {NULL, 0},
 }; 
 
