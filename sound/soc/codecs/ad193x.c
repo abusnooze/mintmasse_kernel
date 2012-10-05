@@ -332,10 +332,19 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 	case SND_SOC_DAIFMT_CBM_CFM: /* codec clk & frm master */
 		printk(KERN_DEBUG "codec clk & frm master\n"); //CS
+		/*temp auskommentiert		
 		adc_reg2 |= AD193X_ADC_LCR_MASTER;
 		adc_reg2 |= AD193X_ADC_BCLK_MASTER;
 		//dac_reg |= AD193X_DAC_LCR_MASTER;
-		//dac_reg |= AD193X_DAC_BCLK_MASTER;
+		//dac_reg |= AD193X_DAC_BCLK_MASTER; */
+
+		//Nur zu testzwecken: von bone aus gesehen ist der codec clk und frm master,
+		//da ich jetzt aber die frm-clock extern generiere ist der codec in wirklichkeit
+		//frm slave und clk master (clk wird aus frm per pll erzeugt):
+		printk(KERN_DEBUG "...aber jetzt grad ist codec frm slave und clk master\n"); //CS
+		adc_reg2 &= ~AD193X_ADC_LCR_MASTER;
+		adc_reg2 |= AD193X_ADC_BCLK_MASTER;
+
 		break;
 	case SND_SOC_DAIFMT_CBS_CFM: /* codec clk slave & frm master */
 		printk(KERN_DEBUG "codec clk slave & frm master\n"); //CS
