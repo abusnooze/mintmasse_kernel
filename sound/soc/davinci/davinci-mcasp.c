@@ -934,6 +934,8 @@ static int davinci_mcasp_startup(struct snd_pcm_substream *substream,
 	printk(KERN_DEBUG "Entering davinci-mcasp.c->davinci_mcasp_startup\n"); //CS
 
 	snd_soc_dai_set_dma_data(dai, substream, dev->dma_params);
+
+	printk(KERN_DEBUG "Exit davinci-mcasp.c->davinci_mcasp_startup\n"); //CS
 	return 0;
 }
 
