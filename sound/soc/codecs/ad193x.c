@@ -277,6 +277,8 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	/* At present, the driver only support AUX ADC mode(SND_SOC_DAIFMT_I2S
 	 * with TDM) and ADC&DAC TDM mode(SND_SOC_DAIFMT_DSP_A)
 	 */
+
+	/* CS: drop that switch for now (just use default values defined above)
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S: //ADC Control 1 -> x01x xxxx -> TDM (daisy chain)
 		printk(KERN_DEBUG "case SND_SOC_DAIFMT_I2S [ad193x: TDM (daisy chain)]"); //CS
@@ -292,7 +294,7 @@ static int ad193x_set_dai_fmt(struct snd_soc_dai *codec_dai,
 	default:
 		printk(KERN_DEBUG "switch1: return -EINVAL"); //CS
 		return -EINVAL;
-	}
+	} */
 
 	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
 	case SND_SOC_DAIFMT_NB_NF: /* normal bit clock + frame */
@@ -562,21 +564,21 @@ static int ad193x_probe(struct snd_soc_codec *codec)
 		     PLL lock indicator (READ ONLY!) [x]
 		     Reserved [xxxx]
 		     ==> 0x04*/
-	snd_soc_write(codec, AD193X_AUXPORT_CTRL0, 0x00);
+	snd_soc_write(codec, AD193X_AUXPORT_CTRL0, 0x80);
 		/*   Reserved [x]
 		     Sample rate: 32/44.1/48 kHz [00]
 		   ? AUXDATA delay (AUXBLKC periods): 1 (?) [000]
-		   ? Serial format: Stereo (normal) [00]
-		     ==> 0x00*/
-	snd_soc_write(codec, AD193X_AUXPORT_CTRL1, 0x00);
-		/*   Reserved [xx]
+		     Serial format: ADC AUX mode (ADC-,TDM-coupled [10]
+		     ==> 0x80*/
+	snd_soc_write(codec, AD193X_AUXPORT_CTRL1, 0x70);
+		/*   Reserved [x]
 		     AUXBCLKs per frame: 64 (two channels) [00]
 		     AUXLRCLK polarity: Left low [0]
-		     AUXLRCLK master/slave: slave [0]
-		     AUXBCLK master/slave: slave [0]
-		     AUXBCLK source: AUXBCLK pin [0]
+		     AUXLRCLK master/slave: master [1]
+		     AUXBCLK master/slave: master [1]
+		     AUXBCLK source: Internally generated [1]
 		     AUXBCLK polarity: normal [0]
-		     ==> 0x00*/
+		     ==> 0x70*/
 	snd_soc_write(codec, AD193X_AUXPORT_CTRL2, 0x00);
 		/*   Reserved [xxx]
 		     Word width: 24 [00]
@@ -588,21 +590,21 @@ static int ad193x_probe(struct snd_soc_codec *codec)
 		     ADC1L/1R/2L/2R mute: Unmute all [0000]
 		     Output sample rate: 32/44.1/48 kHz [00]
 		     ==> 0x00*/	
-	snd_soc_write(codec, AD193X_ADC_CTRL1, 0x20);
+	snd_soc_write(codec, AD193X_ADC_CTRL1, 0x40);
 		/*   Word width: 24 [00]
 		   ? SDATA delay (BCLK periods): 1 [000]
-		   ? Serial format: TDM (daisy chain) [01]
+		     Serial format: ADC AUX mode (TDM-coupled) [10]
 		     BCLK active edge (TDM_IN): Latch in midcycle (normal) [0]
-		     ==> 0x20*/
-	snd_soc_write(codec, AD193X_ADC_CTRL2, 0x15);
-		/* ? LRCLK format: Pulse (32-BCLK/channel) [1]
+		     ==> 0x40*/
+	snd_soc_write(codec, AD193X_ADC_CTRL2, 0xe4);
+		/*   LRCLK format: 50/50 [0]
 		     BCLK polarity: Drive out on falling edge (DEF) [0]
 		     LRCLK polarity: Left high [1]
 		     LRCLK master/slave: slave [0]
-		   ? BCLKs per frame: 128 [01] 
-		     BCLK master/slave: slave [0]
-		   ? BCLK source: ABCLK pin [0] 
-		     ==> 0x15*/
+		     BCLKs per frame: 256 [10] 
+		     BCLK master/slave: master [1]
+		     BCLK source: internally generated [1] 
+		     ==> 0xe4*/
 	/*--------------------------------------------*/	
 	/*Readback register for debugging-------------*/
 	tmp = snd_soc_read(codec, AD193X_PLL_CLK_CTRL0);
