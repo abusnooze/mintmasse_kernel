@@ -370,10 +370,10 @@ static struct snd_soc_card am335x_snd_soc_card = {
 	.name = "AM335X EVM",
 	.dai_link = &am335x_evm_dai,
 	.num_links = 1,
-	//.aux_dev = am335x_aux_devs, //CS: from sound/soc/samsung/neo1973_wm8753.c
-	//.num_aux_devs = ARRAY_SIZE(am335x_aux_devs), //CS
-	//.codec_conf = am335x_codec_conf, //CS
-	//.num_configs = ARRAY_SIZE(am335x_codec_conf), //CS
+	.aux_dev = am335x_aux_devs, //CS: from sound/soc/samsung/neo1973_wm8753.c
+	.num_aux_devs = ARRAY_SIZE(am335x_aux_devs), //CS
+	.codec_conf = am335x_codec_conf, //CS
+	.num_configs = ARRAY_SIZE(am335x_codec_conf), //CS
 };
 
 

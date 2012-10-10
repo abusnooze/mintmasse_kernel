@@ -424,3 +424,8 @@ config SND_SOC_WM2000
 
 config SND_SOC_WM9090
 	tristate
+
+#CS: added this ---------
+config SND_SOC_THAT5173
+	tristate "Build THAT5173 gain control driver"
+#------------------------------------------

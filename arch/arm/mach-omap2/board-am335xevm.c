@@ -498,6 +498,7 @@ static struct pinmux_config spi0_pin_mux[] = {
 	{NULL, 0},
 };
 
+
 /* Module pin mux for SPI flash */
 //d0 auf COUT von AD1974 (try with pull down)
 //d1 auf CIN von AD1974
@@ -510,8 +511,11 @@ static struct pinmux_config spi1_pin_mux[] = {
 		| AM33XX_INPUT_EN},
 	{"mcasp0_ahclkr.spi1_cs0", OMAP_MUX_MODE3 | AM33XX_PULL_ENBL
 		| AM33XX_PULL_UP | AM33XX_INPUT_EN},
+	{"ecap0_in_pwm0_out.spi1_cs1", OMAP_MUX_MODE2 | AM33XX_PULL_ENBL
+		| AM33XX_PULL_UP | AM33XX_INPUT_EN},
 	{NULL, 0},
 };
+
 
 /* Module pin mux for rgmii1 */
 static struct pinmux_config rgmii1_pin_mux[] = {
@@ -1228,6 +1232,16 @@ static struct spi_board_info bone_spi1_info[] = { //CS: added this struct
 	},
 };
 
+static struct spi_board_info bone_spi1_cs1_info[] = { //CS: added this struct for gain control
+	{
+		.modalias = "that5173",
+		.max_speed_hz = 312500, //test: set it 10 times slower... //3125000 //not sure about this value (48000000 used by communist-code)
+		.bus_num = 2,
+		.chip_select = 1,
+		.mode = SPI_MODE_0, //clock should start low -> CPOL = 0, data should be sampled on leading edge -> CPHA = 0 ==> spi mode 0
+	},
+};
+
 
 static struct gpmc_timings am335x_nand_timings = {
 	.sync_clk = 0,
@@ -1743,6 +1757,10 @@ static void spi1_init(int evm_id, int profile)
 	printk(KERN_DEBUG "board-am335xevm.c->spi1_init: calling spi_register_board_info."); //CS
 	spi_register_board_info(bone_spi1_info,
 			ARRAY_SIZE(bone_spi1_info));
+	spi_register_board_info(bone_spi1_cs1_info,
+			ARRAY_SIZE(bone_spi1_cs1_info));
+
+
 	return;
 }
 
