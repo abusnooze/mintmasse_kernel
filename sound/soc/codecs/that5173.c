@@ -24,15 +24,82 @@
 
 /* codec private data */
 struct that5173_priv {
-	struct regmap *regmap;
+	//struct regmap *regmap;
 	//int sysclk;
+	struct spi_device *spi;
+	struct snd_soc_codec codec; //(?)
+	int master;
 };
+
+static const uint8_t that5173_default_regs[] = {
+	0x01, 0x02, 0x03, 0x04,
+};
+
+
+
+
+/* ---------------------------------------------------------------------
+ * Register access routines
+ */
+static unsigned int that5173_reg_read(struct snd_soc_codec *codec,
+				   unsigned int reg)
+{
+	printk(KERN_DEBUG "that5173.c->that5173_reg_read: trying to read"); //CS
+	return 0;
+}
+
+
+/*static unsigned int that5173_reg_read_cache(struct snd_soc_codec *codec,
+					 unsigned int reg)
+{
+	u16 *cache = codec->reg_cache;
+
+	if (reg >= AIC26_NUM_REGS) {
+		WARN_ON_ONCE(1);
+		return 0;
+	}
+
+	return cache[reg];
+}*/
+
+static int that5173_reg_write(struct snd_soc_codec *codec, unsigned int reg,
+			   unsigned int value)
+{
+
+	struct that5173_priv *that5173 = snd_soc_codec_get_drvdata(codec);
+	u16 cmd;
+	u8 buffer[8];
+	int rc;
+
+	printk(KERN_DEBUG "that5173.c->that5173_reg_write: trying to write"); //CS
+
+
+	/*Do SPI transfer*/
+	buffer[0] = value; //gain amp 1
+	buffer[1] = 0x30;  //-> update on zerocrossing
+	buffer[2] = value; //gain amp 2
+	buffer[3] = 0x30;  
+	buffer[4] = value; //gain amp 3
+	buffer[5] = 0x30;
+	buffer[6] = value; //gain amp 4
+	buffer[7] = 0x30;
+	rc = spi_write(that5173->spi, buffer, 8);
+	if (rc) {
+		printk(KERN_DEBUG "that5173.c->that5173_reg_write: SPI reg write error!"); //CS
+	}
+	printk(KERN_DEBUG "that5173.c->that5173_reg_write: success"); //CS
+
+	//todo: cache written value
+	
+	return 0;
+}
 
 
 static const struct snd_kcontrol_new that5173_snd_controls[] = {
 	
 
-	SOC_DOUBLE_R("Capture Volume", 0x06, 0x07, 0, 20, 0), //maximum value is 20 (= 60 dB gain)
+	//SOC_DOUBLE_R("Capture Volume", 0x07, 0x08, 0, 20, 0), //maximum value is 20 (= 60 dB gain)
+	SOC_SINGLE("Capture Volume", 0x00, 0, 20, 0), //maximum value is 20 (= 60 dB gain), register address doesn't matter
 
 	/*
 	#define SOC_DOUBLE_R(xname, reg_left, reg_right, xshift, xmax, xinvert) \
@@ -67,15 +134,15 @@ static int that5173_probe(struct snd_soc_codec *codec)
 
 	printk(KERN_DEBUG "Entering that5173_probe"); //CS
 
-	codec->control_data = that5173->regmap;
-	ret = snd_soc_codec_set_cache_io(codec, 0, 0, SND_SOC_REGMAP);
-	if (ret < 0) {
-		printk(KERN_DEBUG "Failed to set cache I/O: %d\n", ret); //CS
-		dev_err(codec->dev, "failed to set cache I/O: %d\n", ret);
-		return ret;
-	}
+	//codec->control_data = that5173->regmap;
+	//ret = snd_soc_codec_set_cache_io(codec, 0, 0, SND_SOC_REGMAP);
+	//if (ret < 0) {
+	//	printk(KERN_DEBUG "Failed to set cache I/O: %d\n", ret); //CS
+	//	dev_err(codec->dev, "failed to set cache I/O: %d\n", ret);
+	//	return ret;
+	//}
 
-	printk(KERN_DEBUG "writing default values to codec registers"); //CS
+	//printk(KERN_DEBUG "writing default values to codec registers"); //CS
 	
 	/*Readback register for debugging-------------*/
 	//tmp = snd_soc_read(codec, AD193X_PLL_CLK_CTRL0);
@@ -103,12 +170,19 @@ static int that5173_probe(struct snd_soc_codec *codec)
 	*/
 	
 
-	return ret;
+	//return ret;
+	return 0;
 }
 
 
 static struct snd_soc_codec_driver soc_codec_dev_that5173 = {
 	.probe = 	that5173_probe,
+	.read  =	that5173_reg_read,
+	.write = 	that5173_reg_write,
+	.reg_cache_size = ARRAY_SIZE(that5173_default_regs),
+	.reg_word_size = sizeof(uint8_t),
+	.reg_cache_default = that5173_default_regs,
+	
 	/*should I define 
 	.write = lm4857_write,
 	.read = lm4857_read,
@@ -120,13 +194,13 @@ static struct snd_soc_codec_driver soc_codec_dev_that5173 = {
 	?*/
 };
 
-static const struct regmap_config that5173_spi_regmap_config = {
-	.val_bits = 8,           //Number of bits in a register value, mandatory.
-	.reg_bits = 16,          //Number of bits in a register address, mandatory.
-	.read_flag_mask = 0x09,  //Mask to be set in the top byte of the register when doing a read.
-	.write_flag_mask = 0x08, //Mask to be set in the top byte of the register when doing a write. 
-			         //If both read_flag_mask and write_flag_mask are empty the regmap_bus default masks are used.
-};
+//static const struct regmap_config that5173_spi_regmap_config = {
+//	.val_bits = 8,           //Number of bits in a register value, mandatory.
+//	.reg_bits = 16,          //Number of bits in a register address, mandatory.
+//	.read_flag_mask = 0x09,  //Mask to be set in the top byte of the register when doing a read.
+//	.write_flag_mask = 0x08, //Mask to be set in the top byte of the register when doing a write. 
+//			         //If both read_flag_mask and write_flag_mask are empty the regmap_bus default masks are used.
+//};
 
 static int __devinit that5173_spi_probe(struct spi_device *spi)
 {
@@ -135,34 +209,54 @@ static int __devinit that5173_spi_probe(struct spi_device *spi)
 
 	printk(KERN_DEBUG "Entering: that5173_spi_probe"); //CS
 
+	//CS: compare: tlv320aic26.c
+
+	/*Allocate driver data */
 	that5173 = kzalloc(sizeof(struct that5173_priv), GFP_KERNEL);
 	if (that5173 == NULL)
 		return -ENOMEM;
+	
+	/* Initialize the driver data */
+	//that5173->regmap = regmap_init_spi(spi, &that5173_spi_regmap_config);
+	//if (IS_ERR(that5173->regmap)) {
+	//	ret = PTR_ERR(that5173->regmap);
+	//	goto err_free;
+	//}
 
-	that5173->regmap = regmap_init_spi(spi, &that5173_spi_regmap_config);
-	if (IS_ERR(that5173->regmap)) {
-		ret = PTR_ERR(that5173->regmap);
-		goto err_free;
+	//spi_set_drvdata(spi, that5173);
+
+	//printk(KERN_DEBUG "that5173.c->that5173_spi_probe: calling snd_soc_register_codec"); //CS
+	////ret = snd_soc_register_codec(&spi->dev, &soc_codec_dev_ad193x, &ad193x_dai, 1);
+	//ret = snd_soc_register_codec(&spi->dev, &soc_codec_dev_that5173, NULL, 0); //NULL, 0 as in lm4857.c
+	//if (ret < 0)
+	//	goto err_regmap_exit;
+
+	//printk(KERN_DEBUG "that5173.c->that5173_spi_probe: successful!"); //CS
+	//return 0;
+
+//err_regmap_exit:
+//	regmap_exit(that5173->regmap);
+//err_free:
+//	kfree(that5173);
+
+//	printk(KERN_DEBUG "that5173.c->that5173_spi_probe: return with error"); //CS
+//	return ret;
+
+	that5173->spi = spi;
+	dev_set_drvdata(&spi->dev, that5173);
+	that5173->master = 1; //? don't need that, do I?
+
+	ret = snd_soc_register_codec(&spi->dev, &soc_codec_dev_that5173, NULL, 0);
+	if (ret < 0){
+		kfree(that5173);
+		printk(KERN_DEBUG "that5173.c->that5173_spi_probe: snd_soc_register_codec failed!\n");
+	} else {
+		ret = 0;
+		printk(KERN_DEBUG "that5173.c->that5173_spi_probe: SPI device initialized\n");
 	}
-
-	spi_set_drvdata(spi, that5173);
-
-	printk(KERN_DEBUG "that5173.c->that5173_spi_probe: calling snd_soc_register_codec"); //CS
-	//ret = snd_soc_register_codec(&spi->dev, &soc_codec_dev_ad193x, &ad193x_dai, 1);
-	ret = snd_soc_register_codec(&spi->dev, &soc_codec_dev_that5173, NULL, 0); //NULL, 0 as in lm4857.c
-	if (ret < 0)
-		goto err_regmap_exit;
-
-	printk(KERN_DEBUG "that5173.c->that5173_spi_probe: successful!"); //CS
-	return 0;
-
-err_regmap_exit:
-	regmap_exit(that5173->regmap);
-err_free:
-	kfree(that5173);
-
-	printk(KERN_DEBUG "that5173.c->that5173_spi_probe: return with error"); //CS
+	
 	return ret;
+		
 }
 
 static int __devexit that5173_spi_remove(struct spi_device *spi)
@@ -172,7 +266,10 @@ static int __devexit that5173_spi_remove(struct spi_device *spi)
 	printk(KERN_DEBUG "Entering: that5173_spi_remove"); //CS
 
 	snd_soc_unregister_codec(&spi->dev);
-	regmap_exit(that5173->regmap);
+	//regmap_exit(that5173->regmap);
+
+	//spi_unregister_driver(&that5173_spi_driver);
+
 	kfree(that5173);
 	return 0;
 }
