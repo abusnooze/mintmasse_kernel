@@ -32,7 +32,7 @@ struct that5173_priv {
 };
 
 static const uint8_t that5173_default_regs[] = {
-	0x01, 0x02, 0x03, 0x04,
+	0x00, 0x00, 0x00, 0x00,
 };
 
 
@@ -44,29 +44,64 @@ static const uint8_t that5173_default_regs[] = {
 static unsigned int that5173_reg_read(struct snd_soc_codec *codec,
 				   unsigned int reg)
 {
+	struct that5173_priv *that5173 = snd_soc_codec_get_drvdata(codec);
+	u16 *cache = codec->reg_cache;
+	u8 buffer[8];
+	int rc;
+	u16 value;
+
 	printk(KERN_DEBUG "that5173.c->that5173_reg_read: trying to read"); //CS
-	return 0;
+
+	value = cache[reg];
+
+	/* this doesn't work: I need to write and read simultaneously. If I use
+	   spi_write_then_read(...) I write 64 bit (cached value) and then I read 64 beats
+	   (while writing zeros). That is, the registers are in fact zero all the time although
+	   I read values different from zero. Hence, for now I just use the cached values and do
+	   not perfrom SPI read at all. This is a bit unsafe as I never actually check the register
+	   content (I would need to use the scope to really see whats in the THAT5173 register.
+ 
+	printk(KERN_DEBUG "that5173.c->that5173_reg_read: cached value = %d",value); //CS
+
+	buffer[0] = value; //gain amp 1
+	buffer[1] = 0x30;  //-> update on zerocrossing
+	buffer[2] = value; //gain amp 2
+	buffer[3] = 0x30;  
+	buffer[4] = value; //gain amp 3
+	buffer[5] = 0x30;
+	buffer[6] = value; //gain amp 4
+	buffer[7] = 0x30;
+	rc = spi_write_then_read(that5173->spi, buffer, 8, buffer, 8);
+	if (rc) {
+		printk(KERN_DEBUG "that5173.c->that5173_reg_read: SPI read/write error!"); //CS
+		return -EIO;
+	}
+	value = buffer[0];
+
+	printk(KERN_DEBUG "that5173.c->that5173_reg_read: read value = %d",value); //CS
+	*/
+
+	/*update cache*/
+	cache[reg] = value;
+
+	return value;
 }
 
 
-/*static unsigned int that5173_reg_read_cache(struct snd_soc_codec *codec,
+static unsigned int that5173_reg_read_cache(struct snd_soc_codec *codec,
 					 unsigned int reg)
 {
 	u16 *cache = codec->reg_cache;
 
-	if (reg >= AIC26_NUM_REGS) {
-		WARN_ON_ONCE(1);
-		return 0;
-	}
-
 	return cache[reg];
-}*/
+}
 
 static int that5173_reg_write(struct snd_soc_codec *codec, unsigned int reg,
 			   unsigned int value)
 {
 
 	struct that5173_priv *that5173 = snd_soc_codec_get_drvdata(codec);
+	u16 *cache = codec->reg_cache;
 	u16 cmd;
 	u8 buffer[8];
 	int rc;
@@ -74,7 +109,7 @@ static int that5173_reg_write(struct snd_soc_codec *codec, unsigned int reg,
 	printk(KERN_DEBUG "that5173.c->that5173_reg_write: trying to write"); //CS
 
 
-	/*Do SPI transfer*/
+	/*do SPI transfer*/
 	buffer[0] = value; //gain amp 1
 	buffer[1] = 0x30;  //-> update on zerocrossing
 	buffer[2] = value; //gain amp 2
@@ -86,10 +121,12 @@ static int that5173_reg_write(struct snd_soc_codec *codec, unsigned int reg,
 	rc = spi_write(that5173->spi, buffer, 8);
 	if (rc) {
 		printk(KERN_DEBUG "that5173.c->that5173_reg_write: SPI reg write error!"); //CS
+		return -EIO;
 	}
 	printk(KERN_DEBUG "that5173.c->that5173_reg_write: success"); //CS
 
-	//todo: cache written value
+	/*update chache*/
+	cache[reg] = value;
 	
 	return 0;
 }
